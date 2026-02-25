@@ -1,0 +1,3728 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Online Project - ইউজার অ্যাপ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            min-height: 600px;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* পেজ এনিমেশন */
+        .page {
+            display: none;
+            padding: 15px;
+            padding-bottom: 70px;
+            min-height: 600px;
+            background: white;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* অথ পেজ এনিমেশন */
+        #signin-page, #login-page {
+            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+            min-height: 600px;
+            padding: 20px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            animation: gradientBG 10s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #signin-page.active, #login-page.active {
+            display: flex;
+        }
+
+        .auth-card {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-card h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .auth-card input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-card input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+            outline: none;
+        }
+
+        .auth-card button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-card button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-footer {
+            margin-top: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .auth-footer a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* নেভিগেশন বার */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .nav-item:hover {
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .app-header h2 {
+            font-size: 22px;
+            color: #333;
+        }
+
+        .back-btn {
+            color: #667eea;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* সেল পেজের জন্য স্পেশাল স্টাইল */
+        .sell-page {
+            background: #f8faff;
+        }
+
+        /* প্রাইস কার্ড */
+        .price-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .price-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        .price-card .price-title {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .price-card .price-amount {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .price-card .price-note {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .price-card i {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.1;
+        }
+
+        /* প্রোগ্রেস কার্ড */
+        .progress-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #eaeef5;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .progress-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eaeef5;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-limit {
+            font-size: 12px;
+            color: #28a745;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .limit-exceeded {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #ff9800;
+        }
+
+        /* এডমিন ইনফো কার্ড */
+        .admin-info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #eaeef5;
+            transition: all 0.3s ease;
+        }
+
+        .admin-info-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .admin-info-card .card-title {
+            font-size: 16px;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .admin-info-card .card-title i {
+            font-size: 18px;
+        }
+
+        .admin-info-card .last-updated {
+            font-size: 11px;
+            color: #999;
+            margin-left: auto;
+        }
+
+        .admin-info-card .info-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #eaeef5;
+            transition: all 0.3s ease;
+        }
+
+        .admin-info-card .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .admin-info-card .info-row.updated {
+            background: #f0f4ff;
+            animation: highlight 1s ease;
+        }
+
+        @keyframes highlight {
+            0% { background: #f0f4ff; }
+            50% { background: #e0e8ff; }
+            100% { background: #f0f4ff; }
+        }
+
+        .admin-info-card .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f4ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 18px;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-info-card .info-content {
+            flex: 1;
+        }
+
+        .admin-info-card .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 2px;
+        }
+
+        .admin-info-card .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .admin-info-card .copy-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-info-card .copy-btn:hover {
+            background: #f0f4ff;
+            transform: scale(1.1);
+        }
+
+        .admin-info-card .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ফর্ম সেকশন */
+        .form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #eaeef5;
+        }
+
+        .form-section .section-title {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .form-section .section-title i {
+            color: #667eea;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .input-group .input-wrapper {
+            position: relative;
+        }
+
+        .input-group .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #eaeef5;
+            border-radius: 15px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f8faff;
+        }
+
+        .input-group input:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .input-group input:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* স্ট্যাটাস কার্ড */
+        .status-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #eaeef5;
+        }
+
+        .status-card .status-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-card .status-header i {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .status-card .status-header h3 {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status-badge.success {
+            background: #e8f5e8;
+            color: #28a745;
+        }
+
+        .status-badge.pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .status-badge.info {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .status-badge i {
+            margin-right: 5px;
+        }
+
+        /* সাবমিট বাটন */
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* টিপস কার্ড */
+        .tips-card {
+            background: #f0f4ff;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .tips-card .tips-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tips-card ul {
+            list-style: none;
+        }
+
+        .tips-card li {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-card li i {
+            color: #28a745;
+            font-size: 12px;
+        }
+
+        /* ওয়ালেট ব্যালেন্স */
+        .wallet-balance {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .withdraw-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .withdraw-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        /* হেল্প সেন্টার স্টাইল */
+        .help-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .help-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #eaeef5;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .help-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .help-icon {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 26px;
+            margin-right: 15px;
+        }
+
+        .help-content {
+            flex: 1;
+        }
+
+        .help-content h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .help-content p {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .help-arrow {
+            color: #667eea;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        /* প্রোজেক্ট বন্ধ থাকলে দেখানোর স্টাইল */
+        .project-disabled {
+            opacity: 0.7;
+            position: relative;
+            cursor: not-allowed !important;
+            filter: grayscale(0.5);
+        }
+
+        .project-disabled:hover {
+            transform: none !important;
+            border-color: #dc3545 !important;
+        }
+
+        .project-disabled::after {
+            content: 'বন্ধ';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #dc3545;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .disabled-message {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #f44336;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .disabled-message i {
+            font-size: 18px;
+        }
+
+        /* উত্তলন মডাল - বিকাশ স্টাইল */
+        .withdraw-modal {
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+        }
+
+        .withdraw-header {
+            background: linear-gradient(135deg, #E2136E 0%, #C0116A 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .withdraw-header i {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .withdraw-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .withdraw-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .withdraw-body {
+            padding: 20px;
+        }
+
+        .bkash-input-group {
+            margin-bottom: 20px;
+        }
+
+        .bkash-input-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .bkash-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            border: 2px solid #eaeef5;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .bkash-input-wrapper:focus-within {
+            border-color: #E2136E;
+            box-shadow: 0 0 0 3px rgba(226, 19, 110, 0.1);
+        }
+
+        .bkash-prefix {
+            background: #f8f9ff;
+            padding: 15px;
+            color: #E2136E;
+            font-weight: 600;
+            font-size: 16px;
+            border-right: 2px solid #eaeef5;
+        }
+
+        .bkash-input-wrapper input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .bkash-input-wrapper input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .bkash-input-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .bkash-input-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .balance-display {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #eaeef5;
+        }
+
+        .balance-display .label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .balance-display .amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #E2136E;
+        }
+
+        .withdraw-note {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #ff9800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .withdraw-note i {
+            font-size: 16px;
+        }
+
+        .withdraw-submit-btn {
+            background: linear-gradient(135deg, #E2136E 0%, #C0116A 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .withdraw-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(226, 19, 110, 0.3);
+        }
+
+        .withdraw-submit-btn:disabled {
+            background: #ccc;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* প্রোফাইল হেডার */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .profile-pic {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 30px;
+            margin-right: 15px;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .profile-menu {
+            background: #f8f9ff;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .profile-menu-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eaeef5;
+            display: flex;
+            align-items: center;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-menu-item:hover {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .profile-menu-item:hover i {
+            color: white;
+        }
+
+        .profile-menu-item i {
+            width: 25px;
+            color: #667eea;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* মডাল */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 350px;
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .info-box, .success-box, .pending-box {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .success-box {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+
+        .pending-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+
+        /* কপি ফিডব্যাক */
+        .copy-feedback {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 3000;
+            display: none;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        /* ব্যানার */
+        .banner {
+            width: 100%;
+            height: 150px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .banner.default-banner {
+            background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+            color: white;
+            background-size: 200% 200%;
+        }
+
+        /* নোটিশ */
+        .welcome-notice {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .notice-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .notice-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .telegram-btn {
+            background: #0088cc;
+            color: white;
+        }
+
+        .later-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        /* লোডিং স্পিনার */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-text {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* টোস্ট মেসেজ */
+        .toast-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .toast-message.success {
+            background: #28a745;
+        }
+        
+        .toast-message.error {
+            background: #dc3545;
+        }
+        
+        .toast-message.info {
+            background: #17a2b8;
+        }
+
+        /* লিমিট ম্যাসেজ */
+        .limit-message {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            color: #ff9800;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .limit-message i {
+            font-size: 18px;
+        }
+
+        /* আপডেট নোটিফিকেশন */
+        .update-notification {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        .update-notification i {
+            font-size: 14px;
+        }
+
+        /* টাইমস্ট্যাম্প */
+        .timestamp-badge {
+            font-size: 10px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 5px;
+        }
+
+        /* ব্যালেন্স চেঞ্জ এনিমেশন */
+        @keyframes balanceChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); color: #ffd700; }
+            100% { transform: scale(1); }
+        }
+
+        .balance-change {
+            animation: balanceChange 0.5s ease;
+        }
+
+        /* কাউন্টডাউন টাইমার */
+        .reset-timer {
+            background: #f0f4ff;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            border: 1px solid #667eea;
+        }
+
+        .reset-timer .timer-text {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .reset-timer .timer-value {
+            font-size: 18px;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        /* গ্রিড */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #eaeef5;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .feature-card i {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .feature-card span {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .price-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .history-icon {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: #f0f4ff;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            cursor: pointer;
+            border: 1px solid #eaeef5;
+        }
+
+        .feature-progress {
+            font-size: 11px;
+            color: #28a745;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #333;
+            margin: 20px 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- লোডিং ওভারলে -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner" style="width: 50px; height: 50px; border-width: 5px;"></div>
+        <div class="loading-text">লোড হচ্ছে...</div>
+    </div>
+    
+    <!-- টোস্ট মেসেজ -->
+    <div id="toastMessage" class="toast-message"></div>
+    
+    <!-- আপডেট নোটিফিকেশন -->
+    <div id="updateNotification" class="update-notification">
+        <i class="fas fa-sync-alt fa-spin"></i>
+        <span>এডমিন সেটিংস আপডেট হয়েছে</span>
+    </div>
+
+    <!-- সাইন ইন পেজ -->
+    <div id="signin-page">
+        <div class="auth-card">
+            <h2>🚀 Online Project - সাইন ইন</h2>
+            <input type="text" id="signin-name" placeholder="আপনার নাম">
+            <input type="email" id="signin-email" placeholder="ইমেইল">
+            <input type="password" id="signin-password" placeholder="পাসওয়ার্ড">
+            <button onclick="handleSignIn()">সাইন ইন <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div class="auth-footer">
+            <p>ইতিমধ্যে একাউন্ট আছে? <a onclick="showLoginPage()">লগইন করুন</a></p>
+        </div>
+    </div>
+
+    <!-- লগইন পেজ -->
+    <div id="login-page">
+        <div class="auth-card">
+            <h2>🔐 Online Project - লগইন</h2>
+            <input type="email" id="login-email" placeholder="ইমেইল">
+            <input type="password" id="login-password" placeholder="পাসওয়ার্ড">
+            <button onclick="handleLogin()">লগইন <i class="fas fa-sign-in-alt"></i></button>
+        </div>
+        <div class="auth-footer">
+            <p>নতুন একাউন্ট? <a onclick="showSigninPage()">সাইন ইন করুন</a></p>
+        </div>
+    </div>
+
+    <!-- হোম পেজ -->
+    <div id="home-page" class="page">
+        <div class="app-header">
+            <h2>🏠 Online Project</h2>
+            <i class="fas fa-bell" onclick="showNoticeModal()"></i>
+        </div>
+
+        <!-- স্বয়ংক্রিয় নোটিশ -->
+        <div class="welcome-notice" id="welcomeNotice">
+            <div class="notice-content">
+                <h3>
+                    <span>স্বাগতম প্রিয় ইউজার!</span>
+                    <span>❤️</span>
+                </h3>
+                <p>আমাদের সাইটে কাজ করার জন্য আপনাকে ধন্যবাদ। পেমেন্ট সমস্যা বা যে কোনো প্রয়োজনে আমাদের টেলিগ্রাম চ্যানেলে যুক্ত হোন।</p>
+                <div class="notice-buttons">
+                    <button class="notice-btn telegram-btn" onclick="joinTelegram()">
+                        <i class="fab fa-telegram"></i> টেলিগ্রামে যুক্ত হন
+                    </button>
+                    <button class="notice-btn later-btn" onclick="closeWelcomeNotice()">
+                        পরে হবো
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ব্যানার সেকশন -->
+        <div id="bannerContainer" class="banner default-banner" onclick="openBannerLink()">
+            <i class="fas fa-ad" style="font-size: 40px; margin-right: 10px;"></i> ব্যানার (এডমিন)
+        </div>
+
+        <div class="section-title">📊 আমাদের প্রোজেক্ট</div>
+        <div class="grid-2">
+            <div class="feature-card" onclick="showDailyBonusPage()">
+                <i class="fas fa-calendar-day"></i>
+                <span>ডেইলি বোনাস</span>
+                <div style="font-size: 12px; color: #28a745;" id="dailyBonusProgress">০% সম্পন্ন</div>
+            </div>
+            <div class="feature-card" onclick="showLeaderboard()">
+                <i class="fas fa-trophy"></i>
+                <span>লিডারশিপ</span>
+            </div>
+        </div>
+
+        <div class="section-title">📱 সেল অ্যাকাউন্ট</div>
+        <div class="grid-2" id="sellProjectsGrid">
+            <!-- জি মেইল কার্ড -->
+            <div class="feature-card" id="gmail-card" onclick="showGmailSellPage()">
+                <i class="fab fa-google"></i>
+                <span>জি মেইল সেল</span>
+                <div class="price-tag" id="gmailPrice">৳ ১০</div>
+                <div class="history-icon" onclick="event.stopPropagation(); showSellHistory('gmail')"><i class="fas fa-history"></i></div>
+            </div>
+            <!-- ফেসবুক কার্ড -->
+            <div class="feature-card" id="facebook-card" onclick="showFacebookSellPage()">
+                <i class="fab fa-facebook"></i>
+                <span>ফেসবুক সেল</span>
+                <div class="price-tag" id="facebookPrice">৳ ১০</div>
+                <div class="history-icon" onclick="event.stopPropagation(); showSellHistory('facebook')"><i class="fas fa-history"></i></div>
+            </div>
+            <!-- টেলিগ্রাম কার্ড -->
+            <div class="feature-card" id="telegram-card" onclick="showTelegramSellPage()">
+                <i class="fab fa-telegram"></i>
+                <span>টেলিগ্রাম সেল</span>
+                <div class="price-tag" id="telegramPrice">৳ ১৫</div>
+                <div class="history-icon" onclick="event.stopPropagation(); showSellHistory('telegram')"><i class="fas fa-history"></i></div>
+            </div>
+            <!-- হোয়াটসঅ্যাপ কার্ড -->
+            <div class="feature-card" id="whatsapp-card" onclick="showWhatsappSellPage()">
+                <i class="fab fa-whatsapp"></i>
+                <span>Whatsapp সেল</span>
+                <div class="price-tag" id="whatsappPrice">৳ ১৫</div>
+                <div class="history-icon" onclick="event.stopPropagation(); showSellHistory('whatsapp')"><i class="fas fa-history"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- জি মেইল সেল পেজ -->
+    <div id="gmail-sell-page" class="page sell-page">
+        <div class="app-header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBackToHome()"></i>
+            <h2>📧 জি মেইল সেল</h2>
+            <i class="fas fa-history" onclick="showSellHistory('gmail')"></i>
+        </div>
+
+        <!-- প্রোজেক্ট বন্ধ থাকলে দেখানোর মেসেজ -->
+        <div id="gmail-disabled-message" class="disabled-message" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>এই প্রোজেক্টটি বন্ধ আছে। পরে আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="price-card" id="gmailPriceCard">
+            <i class="fab fa-google"></i>
+            <div class="price-title">প্রতি পিস মূল্য</div>
+            <div class="price-amount">৳ <span id="gmailPriceValue" class="dynamic-value">১০</span></div>
+            <div class="price-note">* মিনিমাম ১ পিস</div>
+        </div>
+
+        <div class="reset-timer" id="gmailResetTimer" style="display: none;">
+            <div class="timer-text">⏰ পরবর্তী রিসেট হবে</div>
+            <div class="timer-value" id="gmailTimerValue">২৩:৫৯:৫৯</div>
+        </div>
+
+        <div class="progress-card" id="gmailProgressCard">
+            <div class="progress-header">
+                <span class="progress-title">আপনার অগ্রগতি</span>
+                <span class="progress-count" id="gmailProgressCount">০/২০</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="gmailProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="progress-limit" id="gmailProgressText">০টি কাজ সম্পন্ন, ২০টি বাকি</div>
+        </div>
+
+        <div id="gmailLimitMessage" class="limit-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="gmailLimitMessageText">আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="admin-info-card" id="gmailAdminCard">
+            <div class="card-title">
+                <i class="fas fa-shield-alt"></i>
+                <span>এডমিন প্রদত্ত তথ্য</span>
+                <span class="last-updated" id="gmailLastUpdated">
+                    <i class="fas fa-clock"></i>
+                    <span id="gmailUpdateTime">সর্বশেষ আপডেট: এখনই</span>
+                </span>
+            </div>
+            <div class="info-row" id="gmailEmailRow">
+                <div class="info-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">ইমেইল</div>
+                    <div class="info-value" id="gmailAdminEmail">gmail.sell@onlineproject.com</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('gmailAdminEmail')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="info-row" id="gmailPasswordRow">
+                <div class="info-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">পাসওয়ার্ড</div>
+                    <div class="info-value" id="gmailAdminPassword">Gmail@2024</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('gmailAdminPassword')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tips-card">
+            <div class="tips-title">
+                <i class="fas fa-lightbulb"></i>
+                <span>টিপস</span>
+            </div>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> সঠিক ইমেইল ও পাসওয়ার্ড দিন</li>
+                <li><i class="fas fa-check-circle"></i> একদিনে ২০টি পর্যন্ত কাজ জমা দিতে পারবেন</li>
+                <li><i class="fas fa-check-circle"></i> প্রতিদিন রাত ১২টায় লিমিট রিসেট হবে</li>
+            </ul>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-pencil-alt"></i>
+                <span>আপনার তথ্য দিন</span>
+            </div>
+            
+            <div class="input-group">
+                <label>আপনার জিমেইল</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="gmail-email" placeholder="example@gmail.com">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>পাসওয়ার্ড</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="gmail-password" placeholder="********">
+                </div>
+            </div>
+
+            <button class="submit-btn" id="gmailSubmitBtn" onclick="submitSellTask('gmail')">
+                <i class="fas fa-paper-plane"></i>
+                সাবমিট করুন
+            </button>
+        </div>
+
+        <div class="status-card">
+            <div class="status-header">
+                <i class="fas fa-calendar-check"></i>
+                <h3>আজকের কাজের অবস্থা</h3>
+            </div>
+            <div id="gmail-today-status"></div>
+        </div>
+    </div>
+
+    <!-- ফেসবুক সেল পেজ -->
+    <div id="facebook-sell-page" class="page sell-page">
+        <div class="app-header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBackToHome()"></i>
+            <h2>📘 ফেসবুক সেল</h2>
+            <i class="fas fa-history" onclick="showSellHistory('facebook')"></i>
+        </div>
+
+        <!-- প্রোজেক্ট বন্ধ থাকলে দেখানোর মেসেজ -->
+        <div id="facebook-disabled-message" class="disabled-message" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>এই প্রোজেক্টটি বন্ধ আছে। পরে আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="price-card">
+            <i class="fab fa-facebook"></i>
+            <div class="price-title">প্রতি পিস মূল্য</div>
+            <div class="price-amount">৳ <span id="facebookPriceValue">১০</span></div>
+            <div class="price-note">* মিনিমাম ১ পিস</div>
+        </div>
+
+        <div class="reset-timer" id="facebookResetTimer" style="display: none;">
+            <div class="timer-text">⏰ পরবর্তী রিসেট হবে</div>
+            <div class="timer-value" id="facebookTimerValue">২৩:৫৯:৫৯</div>
+        </div>
+
+        <div class="progress-card" id="facebookProgressCard">
+            <div class="progress-header">
+                <span class="progress-title">আপনার অগ্রগতি</span>
+                <span class="progress-count" id="facebookProgressCount">০/২০</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="facebookProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="progress-limit" id="facebookProgressText">০টি কাজ সম্পন্ন, ২০টি বাকি</div>
+        </div>
+
+        <div id="facebookLimitMessage" class="limit-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="facebookLimitMessageText">আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="admin-info-card">
+            <div class="card-title">
+                <i class="fas fa-shield-alt"></i>
+                <span>এডমিন প্রদত্ত তথ্য</span>
+                <span class="last-updated" id="facebookLastUpdated">
+                    <i class="fas fa-clock"></i>
+                    <span id="facebookUpdateTime">সর্বশেষ আপডেট: এখনই</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">ইমেইল/ফোন</div>
+                    <div class="info-value" id="facebookAdminEmail">fb.sell@onlineproject.com</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('facebookAdminEmail')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">পাসওয়ার্ড</div>
+                    <div class="info-value" id="facebookAdminPassword">Facebook@2024</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('facebookAdminPassword')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tips-card">
+            <div class="tips-title">
+                <i class="fas fa-lightbulb"></i>
+                <span>টিপস</span>
+            </div>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> সঠিক ইমেইল ও পাসওয়ার্ড দিন</li>
+                <li><i class="fas fa-check-circle"></i> একদিনে ২০টি পর্যন্ত কাজ জমা দিতে পারবেন</li>
+                <li><i class="fas fa-check-circle"></i> প্রতিদিন রাত ১২টায় লিমিট রিসেট হবে</li>
+            </ul>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-pencil-alt"></i>
+                <span>আপনার তথ্য দিন</span>
+            </div>
+            
+            <div class="input-group">
+                <label>আপনার ইমেইল/ফোন</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="facebook-email" placeholder="example@gmail.com">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>পাসওয়ার্ড</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="facebook-password" placeholder="********">
+                </div>
+            </div>
+
+            <button class="submit-btn" id="facebookSubmitBtn" onclick="submitSellTask('facebook')">
+                <i class="fas fa-paper-plane"></i>
+                সাবমিট করুন
+            </button>
+        </div>
+
+        <div class="status-card">
+            <div class="status-header">
+                <i class="fas fa-calendar-check"></i>
+                <h3>আজকের কাজের অবস্থা</h3>
+            </div>
+            <div id="facebook-today-status"></div>
+        </div>
+    </div>
+
+    <!-- টেলিগ্রাম সেল পেজ -->
+    <div id="telegram-sell-page" class="page sell-page">
+        <div class="app-header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBackToHome()"></i>
+            <h2>📱 টেলিগ্রাম সেল</h2>
+            <i class="fas fa-history" onclick="showSellHistory('telegram')"></i>
+        </div>
+
+        <!-- প্রোজেক্ট বন্ধ থাকলে দেখানোর মেসেজ -->
+        <div id="telegram-disabled-message" class="disabled-message" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>এই প্রোজেক্টটি বন্ধ আছে। পরে আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="price-card">
+            <i class="fab fa-telegram"></i>
+            <div class="price-title">প্রতি পিস মূল্য</div>
+            <div class="price-amount">৳ <span id="telegramPriceValue">১৫</span></div>
+            <div class="price-note">* মিনিমাম ১ পিস</div>
+        </div>
+
+        <div class="reset-timer" id="telegramResetTimer" style="display: none;">
+            <div class="timer-text">⏰ পরবর্তী রিসেট হবে</div>
+            <div class="timer-value" id="telegramTimerValue">২৩:৫৯:৫৯</div>
+        </div>
+
+        <div class="progress-card" id="telegramProgressCard">
+            <div class="progress-header">
+                <span class="progress-title">আপনার অগ্রগতি</span>
+                <span class="progress-count" id="telegramProgressCount">০/২০</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="telegramProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="progress-limit" id="telegramProgressText">০টি কাজ সম্পন্ন, ২০টি বাকি</div>
+        </div>
+
+        <div id="telegramLimitMessage" class="limit-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="telegramLimitMessageText">আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="admin-info-card">
+            <div class="card-title">
+                <i class="fas fa-shield-alt"></i>
+                <span>এডমিন প্রদত্ত তথ্য</span>
+                <span class="last-updated" id="telegramLastUpdated">
+                    <i class="fas fa-clock"></i>
+                    <span id="telegramUpdateTime">সর্বশেষ আপডেট: এখনই</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">ফোন নাম্বার</div>
+                    <div class="info-value" id="telegramAdminPhone">+8801700000000</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('telegramAdminPhone')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">পাসওয়ার্ড</div>
+                    <div class="info-value" id="telegramAdminPassword">Telegram@2024</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('telegramAdminPassword')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tips-card">
+            <div class="tips-title">
+                <i class="fas fa-lightbulb"></i>
+                <span>টিপস</span>
+            </div>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> সঠিক ফোন নাম্বার দিন</li>
+                <li><i class="fas fa-check-circle"></i> ইউজার আইডি সঠিকভাবে দিন</li>
+                <li><i class="fas fa-check-circle"></i> একদিনে ২০টি পর্যন্ত কাজ জমা দিতে পারবেন</li>
+                <li><i class="fas fa-check-circle"></i> প্রতিদিন রাত ১২টায় লিমিট রিসেট হবে</li>
+            </ul>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-pencil-alt"></i>
+                <span>আপনার তথ্য দিন</span>
+            </div>
+            
+            <div class="input-group">
+                <label>আপনার ফোন নাম্বার</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="telegram-phone" placeholder="+8801XXXXXXXXX">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>ইউজার আইডি</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="telegram-userid" placeholder="@username">
+                </div>
+            </div>
+
+            <button class="submit-btn" id="telegramSubmitBtn" onclick="submitSellTask('telegram')">
+                <i class="fas fa-paper-plane"></i>
+                সাবমিট করুন
+            </button>
+        </div>
+
+        <div class="status-card">
+            <div class="status-header">
+                <i class="fas fa-calendar-check"></i>
+                <h3>আজকের কাজের অবস্থা</h3>
+            </div>
+            <div id="telegram-today-status"></div>
+        </div>
+    </div>
+
+    <!-- হোয়াটসঅ্যাপ সেল পেজ -->
+    <div id="whatsapp-sell-page" class="page sell-page">
+        <div class="app-header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBackToHome()"></i>
+            <h2>💬 হোয়াটসঅ্যাপ সেল</h2>
+            <i class="fas fa-history" onclick="showSellHistory('whatsapp')"></i>
+        </div>
+
+        <!-- প্রোজেক্ট বন্ধ থাকলে দেখানোর মেসেজ -->
+        <div id="whatsapp-disabled-message" class="disabled-message" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>এই প্রোজেক্টটি বন্ধ আছে। পরে আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="price-card">
+            <i class="fab fa-whatsapp"></i>
+            <div class="price-title">প্রতি পিস মূল্য</div>
+            <div class="price-amount">৳ <span id="whatsappPriceValue">১৫</span></div>
+            <div class="price-note">* মিনিমাম ১ পিস</div>
+        </div>
+
+        <div class="reset-timer" id="whatsappResetTimer" style="display: none;">
+            <div class="timer-text">⏰ পরবর্তী রিসেট হবে</div>
+            <div class="timer-value" id="whatsappTimerValue">২৩:৫৯:৫৯</div>
+        </div>
+
+        <div class="progress-card" id="whatsappProgressCard">
+            <div class="progress-header">
+                <span class="progress-title">আপনার অগ্রগতি</span>
+                <span class="progress-count" id="whatsappProgressCount">০/২০</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="whatsappProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="progress-limit" id="whatsappProgressText">০টি কাজ সম্পন্ন, ২০টি বাকি</div>
+        </div>
+
+        <div id="whatsappLimitMessage" class="limit-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="whatsappLimitMessageText">আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।</span>
+        </div>
+
+        <div class="admin-info-card">
+            <div class="card-title">
+                <i class="fas fa-shield-alt"></i>
+                <span>এডমিন প্রদত্ত তথ্য</span>
+                <span class="last-updated" id="whatsappLastUpdated">
+                    <i class="fas fa-clock"></i>
+                    <span id="whatsappUpdateTime">সর্বশেষ আপডেট: এখনই</span>
+                </span>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">ফোন নাম্বার</div>
+                    <div class="info-value" id="whatsappAdminPhone">+8801700000000</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('whatsappAdminPhone')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">পাসওয়ার্ড</div>
+                    <div class="info-value" id="whatsappAdminPassword">WhatsApp@2024</div>
+                </div>
+                <button class="copy-btn" onclick="copyText('whatsappAdminPassword')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tips-card">
+            <div class="tips-title">
+                <i class="fas fa-lightbulb"></i>
+                <span>টিপস</span>
+            </div>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> সঠিক ফোন নাম্বার দিন</li>
+                <li><i class="fas fa-check-circle"></i> একদিনে ২০টি পর্যন্ত কাজ জমা দিতে পারবেন</li>
+                <li><i class="fas fa-check-circle"></i> প্রতিদিন রাত ১২টায় লিমিট রিসেট হবে</li>
+            </ul>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-pencil-alt"></i>
+                <span>আপনার তথ্য দিন</span>
+            </div>
+            
+            <div class="input-group">
+                <label>আপনার ফোন নাম্বার</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="whatsapp-phone" placeholder="+8801XXXXXXXXX">
+                </div>
+            </div>
+
+            <button class="submit-btn" id="whatsappSubmitBtn" onclick="submitSellTask('whatsapp')">
+                <i class="fas fa-paper-plane"></i>
+                সাবমিট করুন
+            </button>
+        </div>
+
+        <div class="status-card">
+            <div class="status-header">
+                <i class="fas fa-calendar-check"></i>
+                <h3>আজকের কাজের অবস্থা</h3>
+            </div>
+            <div id="whatsapp-today-status"></div>
+        </div>
+    </div>
+
+    <!-- ডেইলি বোনাস পেজ -->
+    <div id="daily-bonus-page" class="page">
+        <div class="app-header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBackToHome()"></i>
+            <h2>🎁 ডেইলি বোনাস</h2>
+        </div>
+
+        <div class="wallet-balance" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <div>আজকের বোনাস</div>
+            <div class="balance-amount">৳ <span id="bonusAmountDisplay">৫০</span></div>
+        </div>
+
+        <div class="section-title">📋 আজকের কাজ সমূহ</div>
+        
+        <div class="info-box" id="task1">
+            <div style="display: flex; justify-content: space-between;">
+                <span><i class="fab fa-google"></i> জি মেইল সেল (<span id="task1Price">১০</span> টাকা)</span>
+                <span><i class="fas fa-check-circle" style="color: #4caf50;" id="task1Status"></i></span>
+            </div>
+            <button class="submit-btn" style="margin-top: 10px;" id="task1Btn" onclick="completeTask('gmail')">কাজ করুন 🚀</button>
+        </div>
+
+        <div class="info-box" id="task2">
+            <div style="display: flex; justify-content: space-between;">
+                <span><i class="fab fa-facebook"></i> ফেসবুক সেল (<span id="task2Price">১০</span> টাকা)</span>
+                <span><i class="fas fa-check-circle" style="color: #4caf50;" id="task2Status"></i></span>
+            </div>
+            <button class="submit-btn" style="margin-top: 10px;" id="task2Btn" onclick="completeTask('facebook')">কাজ করুন 🚀</button>
+        </div>
+
+        <div class="info-box" id="task3">
+            <div style="display: flex; justify-content: space-between;">
+                <span><i class="fab fa-telegram"></i> টেলিগ্রাম সেল (<span id="task3Price">১৫</span> টাকা)</span>
+                <span><i class="fas fa-check-circle" style="color: #4caf50;" id="task3Status"></i></span>
+            </div>
+            <button class="submit-btn" style="margin-top: 10px;" id="task3Btn" onclick="completeTask('telegram')">কাজ করুন 🚀</button>
+        </div>
+
+        <div class="info-box" id="task4">
+            <div style="display: flex; justify-content: space-between;">
+                <span><i class="fab fa-whatsapp"></i> হোয়াটসঅ্যাপ সেল (<span id="task4Price">১৫</span> টাকা)</span>
+                <span><i class="fas fa-check-circle" style="color: #4caf50;" id="task4Status"></i></span>
+            </div>
+            <button class="submit-btn" style="margin-top: 10px;" id="task4Btn" onclick="completeTask('whatsapp')">কাজ করুন 🚀</button>
+        </div>
+
+        <div class="success-box" id="bonusClaimSection" style="display: none;">
+            <p>🎉 অভিনন্দন! আপনি সব কাজ সম্পন্ন করেছেন।</p>
+            <button class="submit-btn" onclick="claimBonus()">বোনাস নিন (<span id="claimBonusAmount">৫০</span> টাকা) 🎁</button>
+        </div>
+    </div>
+
+    <!-- ওয়ালেট পেজ -->
+    <div id="wallet-page" class="page">
+        <div class="app-header">
+            <h2>💰 ওয়ালেট</h2>
+            <div>
+                <i class="fas fa-history withdraw-history-icon" onclick="showWithdrawHistory()"></i>
+                <i class="fas fa-wallet" style="margin-left: 10px;"></i>
+            </div>
+        </div>
+
+        <div class="wallet-balance">
+            <div>বর্তমান ব্যালেন্স</div>
+            <div class="balance-amount" id="walletBalance">৳ ০</div>
+            <button class="withdraw-btn" onclick="showWithdrawModal()">💸 টাকা উত্তলন</button>
+        </div>
+
+        <div class="section-title">📊 আয়ের বিবরণী</div>
+        <div class="info-box">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>📧 জি মেইল সেল (<span id="gmailPrice2">১০</span> টাকা/পিস):</span>
+                <span id="gmailEarn">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>📘 ফেসবুক সেল (<span id="facebookPrice2">১০</span> টাকা/পিস):</span>
+                <span id="facebookEarn">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>📱 টেলিগ্রাম সেল (<span id="telegramPrice2">১৫</span> টাকা/পিস):</span>
+                <span id="telegramEarn">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>💬 হোয়াটসঅ্যাপ সেল (<span id="whatsappPrice2">১৫</span> টাকা/পিস):</span>
+                <span id="whatsappEarn">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>🎁 ডেইলি বোনাস:</span>
+                <span id="bonusEarn">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>➕ ম্যানুয়ালি যোগ:</span>
+                <span id="manualAdded">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>➖ ম্যানুয়ালি কাটা:</span>
+                <span id="manualRemoved">৳ ০</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0; font-weight: bold; border-top: 1px solid #ddd; padding-top: 5px;">
+                <span>📈 নেট ব্যালেন্স:</span>
+                <span id="totalEarn">৳ ০</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- হেল্প সেন্টার পেজ -->
+    <div id="help-center-page" class="page">
+        <div class="app-header">
+            <h2>🆘 হেল্প সেন্টার</h2>
+            <i class="fas fa-headset"></i>
+        </div>
+
+        <div class="help-stats">
+            <div class="help-item" onclick="openHelpLink('facebook')">
+                <div class="help-icon">
+                    <i class="fab fa-facebook"></i>
+                </div>
+                <div class="help-content">
+                    <h4>ফেসবুক</h4>
+                    <p id="facebookHelpDisplay">fb.me/onlineproject</p>
+                </div>
+                <i class="fas fa-chevron-right help-arrow"></i>
+            </div>
+
+            <div class="help-item" onclick="openHelpLink('youtube')">
+                <div class="help-icon">
+                    <i class="fab fa-youtube"></i>
+                </div>
+                <div class="help-content">
+                    <h4>ইউটিউব</h4>
+                    <p id="youtubeHelpDisplay">youtube.com/@onlineproject</p>
+                </div>
+                <i class="fas fa-chevron-right help-arrow"></i>
+            </div>
+
+            <div class="help-item" onclick="openHelpLink('telegram')">
+                <div class="help-icon">
+                    <i class="fab fa-telegram"></i>
+                </div>
+                <div class="help-content">
+                    <h4>টেলিগ্রাম</h4>
+                    <p id="telegramHelpDisplay">t.me/onlineproject</p>
+                </div>
+                <i class="fas fa-chevron-right help-arrow"></i>
+            </div>
+
+            <div class="help-item" onclick="openHelpLink('whatsapp')">
+                <div class="help-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div class="help-content">
+                    <h4>হোয়াটসঅ্যাপ</h4>
+                    <p id="whatsappHelpDisplay">wa.me/8801700000000</p>
+                </div>
+                <i class="fas fa-chevron-right help-arrow"></i>
+            </div>
+        </div>
+
+        <div class="info-box" style="margin-top: 15px;">
+            <i class="fas fa-info-circle"></i> উপরের যেকোনো অপশনে ক্লিক করে সরাসরি হেল্প লাইনে যোগাযোগ করতে পারবেন।
+        </div>
+    </div>
+
+    <!-- প্রোফাইল পেজ -->
+    <div id="profile-page" class="page">
+        <div class="profile-header">
+            <div class="profile-pic">
+                <i class="fas fa-user"></i>
+            </div>
+            <div>
+                <h3 id="profileName">-</h3>
+                <p id="profileEmail">-</p>
+            </div>
+        </div>
+
+        <div class="profile-menu">
+            <div class="profile-menu-item" onclick="editProfile()"><i class="fas fa-user-edit"></i> প্রোফাইল এডিট</div>
+            <div class="profile-menu-item" onclick="showHelpLine()"><i class="fas fa-headset"></i> হেল্প লাইন</div>
+            <div class="profile-menu-item" onclick="showNoticeModal()"><i class="fas fa-bell"></i> নোটিশ</div>
+            <div class="profile-menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> লগআউট</div>
+        </div>
+    </div>
+
+    <!-- নেভিগেশন বার -->
+    <div class="bottom-nav" id="bottomNav">
+        <div class="nav-item" onclick="switchPage('home')"><i class="fas fa-home"></i> হোম</div>
+        <div class="nav-item" onclick="switchPage('wallet')"><i class="fas fa-wallet"></i> ওয়ালেট</div>
+        <div class="nav-item" onclick="switchPage('help-center')"><i class="fas fa-headset"></i> হেল্প</div>
+        <div class="nav-item" onclick="switchPage('profile')"><i class="fas fa-user"></i> প্রোফাইল</div>
+    </div>
+
+    <!-- মডাল কন্টেইনার -->
+    <div id="modalContainer" class="modal">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <!-- উত্তলন মডাল (বিকাশ স্টাইল) -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content withdraw-modal" id="withdrawModalContent"></div>
+    </div>
+
+    <!-- কপি ফিডব্যাক -->
+    <div id="copyFeedback" class="copy-feedback">✅ কপি হয়েছে!</div>
+</div>
+
+<script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUE-PK963IukO4fLbC-6Bur6GOylByJJ4",
+        authDomain: "aa-video-4044c.firebaseapp.com",
+        projectId: "aa-video-4044c",
+        storageBucket: "aa-video-4044c.firebasestorage.app",
+        messagingSenderId: "539530673361",
+        appId: "1:539530673361:web:21da87f56118b77ed799f0"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // গ্লোবাল ভেরিয়েবল
+    let currentUser = null;
+    let sellHistory = [];
+    let withdrawHistory = [];
+    let resetTimers = {};
+    let adminSettings = {
+        gmail: { price: 10, email: 'gmail.sell@onlineproject.com', password: 'Gmail@2024', enabled: true },
+        facebook: { price: 10, email: 'fb.sell@onlineproject.com', password: 'Facebook@2024', enabled: true },
+        telegram: { price: 15, phone: '+8801700000000', password: 'Telegram@2024', enabled: true },
+        whatsapp: { price: 15, phone: '+8801700000000', password: 'WhatsApp@2024', enabled: true },
+        banner: '',
+        bonus: 50,
+        notice: '📢 বিকাশ উত্তলন চালু আছে\n📢 ন্যূনতম উত্তলন ১০০ টাকা',
+        helpLinks: {
+            facebook: { url: 'https://facebook.com/onlineproject', display: 'fb.me/onlineproject' },
+            youtube: { url: 'https://youtube.com/@onlineproject', display: 'youtube.com/@onlineproject' },
+            telegram: { url: 'https://t.me/onlineproject', display: 't.me/onlineproject' },
+            whatsapp: { url: 'https://wa.me/8801700000000', display: 'wa.me/8801700000000' }
+        }
+    };
+
+    // সর্বোচ্চ কাজের সীমা
+    const MAX_TASKS = 20;
+
+    // টেলিগ্রাম লিংক
+    const TELEGRAM_LINK = 'https://t.me/onlineprojectbd78';
+
+    // আপডেট টাইমস্ট্যাম্প
+    let lastUpdateTime = Date.now();
+
+    // লোডিং কন্ট্রোল
+    let loadingTimeout;
+    function showLoading() {
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+        }
+        document.getElementById('loadingOverlay').classList.add('active');
+    }
+
+    function hideLoading() {
+        loadingTimeout = setTimeout(() => {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            loadingTimeout = null;
+        }, 300);
+    }
+
+    // টোস্ট মেসেজ ফাংশন
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toastMessage');
+        toast.textContent = message;
+        toast.className = 'toast-message ' + type;
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+
+    // আপডেট নোটিফিকেশন দেখান
+    function showUpdateNotification() {
+        const notification = document.getElementById('updateNotification');
+        notification.style.display = 'flex';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+
+    // ইউজারের মোট ব্যালেন্স হিসাব করুন
+    function calculateUserBalance(user) {
+        if (!user) return 0;
+        
+        const totalEarned = (user.gmailEarn || 0) + (user.facebookEarn || 0) + 
+                           (user.telegramEarn || 0) + (user.whatsappEarn || 0) + 
+                           (user.dailyBonus || 0);
+        
+        const manualAdded = user.manualAdded || 0;
+        const manualRemoved = user.manualRemoved || 0;
+        const totalWithdrawn = user.totalWithdrawn || 0;
+        
+        return totalEarned + manualAdded - manualRemoved - totalWithdrawn;
+    }
+
+    // অ্যানিমেশন সহ ব্যালেন্স আপডেট
+    function animateBalanceChange() {
+        const balanceElement = document.getElementById('walletBalance');
+        balanceElement.classList.add('balance-change');
+        setTimeout(() => {
+            balanceElement.classList.remove('balance-change');
+        }, 500);
+    }
+
+    // প্রোজেক্ট স্ট্যাটাস আপডেট ফাংশন
+    function updateProjectStatus() {
+        const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+        
+        types.forEach(type => {
+            // হোম পেজের কার্ড আপডেট
+            const card = document.getElementById(type + '-card');
+            if (card) {
+                const enabled = adminSettings[type]?.enabled !== false;
+                if (!enabled) {
+                    card.classList.add('project-disabled');
+                    card.onclick = function(e) {
+                        e.preventDefault();
+                        showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+                    };
+                } else {
+                    card.classList.remove('project-disabled');
+                    card.onclick = function() {
+                        if (type === 'gmail') showGmailSellPage();
+                        else if (type === 'facebook') showFacebookSellPage();
+                        else if (type === 'telegram') showTelegramSellPage();
+                        else if (type === 'whatsapp') showWhatsappSellPage();
+                    };
+                }
+            }
+            
+            // সেল পেজের ডিসএবল মেসেজ
+            const disabledMsg = document.getElementById(type + '-disabled-message');
+            const submitBtn = document.getElementById(type + 'SubmitBtn');
+            const inputs = document.querySelectorAll(`#${type}-sell-page input`);
+            
+            if (disabledMsg && submitBtn) {
+                const enabled = adminSettings[type]?.enabled !== false;
+                if (!enabled) {
+                    disabledMsg.style.display = 'flex';
+                    submitBtn.disabled = true;
+                    inputs.forEach(input => input.disabled = true);
+                } else {
+                    disabledMsg.style.display = 'none';
+                    // লিমিট চেক করে বাটন এনাবল/ডিজেবল করা হবে অন্য ফাংশনে
+                }
+            }
+            
+            // ডেইলি বোনাস পেজের বাটন আপডেট
+            const taskBtn = document.getElementById('task' + (types.indexOf(type) + 1) + 'Btn');
+            if (taskBtn) {
+                const enabled = adminSettings[type]?.enabled !== false;
+                if (!enabled) {
+                    taskBtn.disabled = true;
+                    taskBtn.style.opacity = '0.5';
+                    taskBtn.title = 'এই প্রোজেক্টটি বন্ধ আছে';
+                } else {
+                    taskBtn.disabled = false;
+                    taskBtn.style.opacity = '1';
+                    taskBtn.title = '';
+                }
+            }
+        });
+    }
+
+    // রিসেট টাইমার শুরু করুন
+    function startResetTimers() {
+        const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+        
+        types.forEach(type => {
+            if (resetTimers[type]) {
+                clearInterval(resetTimers[type]);
+            }
+            
+            resetTimers[type] = setInterval(() => {
+                updateResetTimer(type);
+            }, 1000);
+        });
+    }
+
+    // রিসেট টাইমার আপডেট করুন
+    function updateResetTimer(type) {
+        const now = new Date();
+        const midnight = new Date(now);
+        midnight.setHours(24, 0, 0, 0);
+        
+        const timeUntilMidnight = midnight - now;
+        
+        if (timeUntilMidnight <= 0) {
+            resetDailyLimits();
+            return;
+        }
+        
+        const hours = Math.floor(timeUntilMidnight / (1000 * 60 * 60));
+        const minutes = Math.floor((timeUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeUntilMidnight % (1000 * 60)) / 1000);
+        
+        const timerValue = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        const timerElement = document.getElementById(`${type}TimerValue`);
+        const timerContainer = document.getElementById(`${type}ResetTimer`);
+        
+        if (timerElement && timerContainer) {
+            timerElement.innerText = timerValue;
+            
+            if (currentUser && (currentUser[type + 'Count'] || 0) >= MAX_TASKS) {
+                timerContainer.style.display = 'block';
+            } else {
+                timerContainer.style.display = 'none';
+            }
+        }
+    }
+
+    // দৈনিক লিমিট রিসেট করুন
+    async function resetDailyLimits() {
+        if (!currentUser) return;
+        
+        const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+        const updates = {};
+        
+        types.forEach(type => {
+            updates[type + 'Count'] = 0;
+        });
+        
+        try {
+            await database.ref('users/' + currentUser.uid).update(updates);
+            
+            types.forEach(type => {
+                currentUser[type + 'Count'] = 0;
+            });
+            
+            updateUI();
+            updateAllProgressBars();
+            
+            showToast('🔄 আজকের নতুন কাজ শুরু হয়েছে! ২০টি কাজ করতে পারবেন', 'info');
+        } catch (error) {
+            console.error("Error resetting limits:", error);
+        }
+    }
+
+    // পেজ লোড হওয়ার সাথে সাথে
+    window.onload = function() {
+        showLoading();
+        
+        // এডমিন সেটিংস লোড করার জন্য রিয়েল-টাইম লিসেনার
+        const settingsRef = database.ref('settings');
+        settingsRef.on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const newSettings = snapshot.val();
+                
+                // enabled প্রপার্টি না থাকলে ডিফল্ট true সেট করুন
+                const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+                types.forEach(type => {
+                    if (newSettings[type] && newSettings[type].enabled === undefined) {
+                        newSettings[type].enabled = true;
+                    }
+                });
+                
+                if (JSON.stringify(adminSettings) !== JSON.stringify(newSettings)) {
+                    adminSettings = newSettings;
+                    console.log("Settings updated in real-time:", adminSettings);
+                    
+                    lastUpdateTime = Date.now();
+                    
+                    updateUISettings();
+                    highlightUpdatedFields();
+                    showUpdateNotification();
+                    showToast('এডমিন সেটিংস আপডেট হয়েছে', 'info');
+                    
+                    // প্রোজেক্ট স্ট্যাটাস আপডেট
+                    updateProjectStatus();
+                }
+            }
+        });
+
+        // ইউজার ডাটা আপডেট হওয়ার জন্য লিসেনার
+        const userRef = database.ref('users');
+        userRef.on('child_changed', (snapshot) => {
+            if (currentUser && snapshot.key === currentUser.uid) {
+                const updatedUser = snapshot.val();
+                const oldBalance = calculateUserBalance(currentUser);
+                currentUser = { ...currentUser, ...updatedUser };
+                const newBalance = calculateUserBalance(currentUser);
+                
+                updateUI();
+                updateAllProgressBars();
+                animateBalanceChange();
+                
+                if (updatedUser.manualAdded !== undefined && updatedUser.manualAdded > (currentUser.manualAdded || 0)) {
+                    const addedAmount = updatedUser.manualAdded - (currentUser.manualAdded || 0);
+                    showToast(`💰 ${addedAmount} টাকা আপনার একাউন্টে যোগ করা হয়েছে!`, 'success');
+                }
+                
+                if (updatedUser.manualRemoved !== undefined && updatedUser.manualRemoved > (currentUser.manualRemoved || 0)) {
+                    const removedAmount = updatedUser.manualRemoved - (currentUser.manualRemoved || 0);
+                    showToast(`💸 ${removedAmount} টাকা আপনার একাউন্ট থেকে কাটা হয়েছে!`, 'info');
+                }
+            }
+        });
+        
+        // Firebase Auth state observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                console.log("User logged in:", user.email);
+                
+                const userRef = database.ref('users/' + user.uid);
+                const snapshot = await userRef.once('value');
+                
+                if (snapshot.exists()) {
+                    currentUser = snapshot.val();
+                    currentUser.uid = user.uid;
+                    
+                    if (currentUser.banned) {
+                        await auth.signOut();
+                        showToast('আপনার একাউন্ট ব্যান করা হয়েছে!', 'error');
+                        showSigninPage();
+                        hideLoading();
+                        return;
+                    }
+                    
+                    const sellHistoryRef = database.ref('sellHistory/' + user.uid);
+                    const sellSnapshot = await sellHistoryRef.once('value');
+                    if (sellSnapshot.exists()) {
+                        sellHistory = sellSnapshot.val() || [];
+                    } else {
+                        sellHistory = [];
+                    }
+                    
+                    const withdrawHistoryRef = database.ref('withdrawals')
+                        .orderByChild('userId')
+                        .equalTo(user.uid);
+                    const withdrawSnapshot = await withdrawHistoryRef.once('value');
+                    withdrawHistory = [];
+                    withdrawSnapshot.forEach((childSnapshot) => {
+                        withdrawHistory.push({
+                            id: childSnapshot.key,
+                            ...childSnapshot.val()
+                        });
+                    });
+                    
+                    hideAllPages();
+                    document.getElementById('home-page').classList.add('active');
+                    document.getElementById('bottomNav').style.display = 'flex';
+                    
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    document.querySelector('.nav-item[onclick="switchPage(\'home\')"]').classList.add('active');
+                    
+                    updateUI();
+                    showWelcomeNotice();
+                    updateBanner();
+                    updateAllProgressBars();
+                    updateHelpLinks();
+                    updateProjectStatus();
+                    startResetTimers();
+                } else {
+                    console.log("User data not found");
+                    showSigninPage();
+                }
+            } else {
+                console.log("User not logged in");
+                currentUser = null;
+                showSigninPage();
+            }
+            hideLoading();
+        });
+    };
+
+    // হেল্প লিংক আপডেট
+    function updateHelpLinks() {
+        if (adminSettings.helpLinks) {
+            document.getElementById('facebookHelpDisplay').innerText = adminSettings.helpLinks.facebook?.display || 'fb.me/onlineproject';
+            document.getElementById('youtubeHelpDisplay').innerText = adminSettings.helpLinks.youtube?.display || 'youtube.com/@onlineproject';
+            document.getElementById('telegramHelpDisplay').innerText = adminSettings.helpLinks.telegram?.display || 't.me/onlineproject';
+            document.getElementById('whatsappHelpDisplay').innerText = adminSettings.helpLinks.whatsapp?.display || 'wa.me/8801700000000';
+        }
+    }
+
+    // হেল্প লিংক ওপেন
+    function openHelpLink(type) {
+        if (!currentUser) {
+            showToast('আপনাকে লগইন করতে হবে', 'error');
+            return;
+        }
+        
+        let url = '';
+        if (type === 'facebook') url = adminSettings.helpLinks?.facebook?.url || 'https://facebook.com/onlineproject';
+        else if (type === 'youtube') url = adminSettings.helpLinks?.youtube?.url || 'https://youtube.com/@onlineproject';
+        else if (type === 'telegram') url = adminSettings.helpLinks?.telegram?.url || 'https://t.me/onlineproject';
+        else if (type === 'whatsapp') url = adminSettings.helpLinks?.whatsapp?.url || 'https://wa.me/8801700000000';
+        
+        window.open(url, '_blank');
+    }
+
+    // আপডেট হওয়া ফিল্ড হাইলাইট করুন
+    function highlightUpdatedFields() {
+        const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+        types.forEach(type => {
+            const rows = document.querySelectorAll(`#${type}-sell-page .info-row`);
+            rows.forEach(row => {
+                row.classList.add('updated');
+                setTimeout(() => {
+                    row.classList.remove('updated');
+                }, 1000);
+            });
+        });
+    }
+
+    // সব প্রোগ্রেস বার আপডেট
+    function updateAllProgressBars() {
+        if (!currentUser) return;
+        
+        const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+        types.forEach(type => {
+            updateProgressBar(type);
+        });
+    }
+
+    // প্রোগ্রেস বার আপডেট
+    function updateProgressBar(type) {
+        const count = currentUser[type + 'Count'] || 0;
+        const percentage = (count / MAX_TASKS) * 100;
+        const remaining = MAX_TASKS - count;
+        
+        const progressBar = document.getElementById(type + 'ProgressBar');
+        const progressCount = document.getElementById(type + 'ProgressCount');
+        const progressText = document.getElementById(type + 'ProgressText');
+        const limitMessage = document.getElementById(type + 'LimitMessage');
+        const submitBtn = document.getElementById(type + 'SubmitBtn');
+        const timerContainer = document.getElementById(type + 'ResetTimer');
+        
+        if (progressBar) progressBar.style.width = percentage + '%';
+        if (progressCount) progressCount.innerText = `${count}/${MAX_TASKS}`;
+        if (progressText) progressText.innerText = `${count}টি কাজ সম্পন্ন, ${remaining}টি বাকি`;
+        
+        // প্রোজেক্ট বন্ধ থাকলে বাটন ডিজেবল থাকবে
+        const enabled = adminSettings[type]?.enabled !== false;
+        
+        if (count >= MAX_TASKS || !enabled) {
+            if (limitMessage && count >= MAX_TASKS) {
+                limitMessage.style.display = 'flex';
+                const messageSpan = document.getElementById(type + 'LimitMessageText');
+                if (messageSpan) {
+                    messageSpan.innerText = 'আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।';
+                }
+            } else if (limitMessage) {
+                limitMessage.style.display = 'none';
+            }
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.title = !enabled ? 'এই প্রোজেক্টটি বন্ধ আছে' : 'আজকের মতো আপনার কাজের লিমিট শেষ';
+            }
+            
+            if (timerContainer && count >= MAX_TASKS) {
+                timerContainer.style.display = 'block';
+            } else if (timerContainer) {
+                timerContainer.style.display = 'none';
+            }
+            
+            const inputs = document.querySelectorAll(`#${type}-sell-page input`);
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.placeholder = !enabled ? 'প্রোজেক্ট বন্ধ' : 'আজকের লিমিট শেষ';
+            });
+        } else {
+            if (limitMessage) limitMessage.style.display = 'none';
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.title = '';
+            }
+            if (timerContainer) {
+                timerContainer.style.display = 'none';
+            }
+            
+            const inputs = document.querySelectorAll(`#${type}-sell-page input`);
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.placeholder = type === 'telegram' ? '+8801XXXXXXXXX' : 
+                                   (type === 'whatsapp' ? '+8801XXXXXXXXX' : 
+                                   (type === 'gmail' ? 'example@gmail.com' : 'example@gmail.com'));
+            });
+        }
+    }
+
+    // ব্যানার আপডেট
+    function updateBanner() {
+        const bannerContainer = document.getElementById('bannerContainer');
+        if (!bannerContainer) return;
+        
+        if (adminSettings.banner && adminSettings.banner.trim() !== '') {
+            bannerContainer.style.backgroundImage = `url('${adminSettings.banner}')`;
+            bannerContainer.classList.remove('default-banner');
+            bannerContainer.innerHTML = '';
+        } else {
+            bannerContainer.style.backgroundImage = '';
+            bannerContainer.classList.add('default-banner');
+            bannerContainer.innerHTML = '<i class="fas fa-ad" style="font-size: 40px; margin-right: 10px;"></i> ব্যানার (এডমিন)';
+        }
+    }
+
+    // ব্যানার ক্লিক
+    function openBannerLink() {
+        if (adminSettings.banner && adminSettings.banner.trim() !== '') {
+            window.open(adminSettings.banner, '_blank');
+        }
+    }
+
+    // ইউআই সেটিংস আপডেট
+    function updateUISettings() {
+        const updateTime = new Date(lastUpdateTime).toLocaleTimeString('bn-BD', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        document.getElementById('gmailPrice').innerText = `৳ ${adminSettings.gmail?.price || 10}`;
+        document.getElementById('facebookPrice').innerText = `৳ ${adminSettings.facebook?.price || 10}`;
+        document.getElementById('telegramPrice').innerText = `৳ ${adminSettings.telegram?.price || 15}`;
+        document.getElementById('whatsappPrice').innerText = `৳ ${adminSettings.whatsapp?.price || 15}`;
+        
+        document.getElementById('gmailPriceValue').innerText = adminSettings.gmail?.price || 10;
+        document.getElementById('facebookPriceValue').innerText = adminSettings.facebook?.price || 10;
+        document.getElementById('telegramPriceValue').innerText = adminSettings.telegram?.price || 15;
+        document.getElementById('whatsappPriceValue').innerText = adminSettings.whatsapp?.price || 15;
+        
+        document.getElementById('gmailPrice2').innerText = adminSettings.gmail?.price || 10;
+        document.getElementById('facebookPrice2').innerText = adminSettings.facebook?.price || 10;
+        document.getElementById('telegramPrice2').innerText = adminSettings.telegram?.price || 15;
+        document.getElementById('whatsappPrice2').innerText = adminSettings.whatsapp?.price || 15;
+        
+        document.getElementById('task1Price').innerText = adminSettings.gmail?.price || 10;
+        document.getElementById('task2Price').innerText = adminSettings.facebook?.price || 10;
+        document.getElementById('task3Price').innerText = adminSettings.telegram?.price || 15;
+        document.getElementById('task4Price').innerText = adminSettings.whatsapp?.price || 15;
+        
+        document.getElementById('bonusAmountDisplay').innerText = adminSettings.bonus || 50;
+        document.getElementById('claimBonusAmount').innerText = adminSettings.bonus || 50;
+        
+        if (adminSettings.adminInfo) {
+            if (adminSettings.adminInfo.gmail) {
+                document.getElementById('gmailAdminEmail').innerText = adminSettings.adminInfo.gmail.email || 'gmail.sell@onlineproject.com';
+                document.getElementById('gmailAdminPassword').innerText = adminSettings.adminInfo.gmail.password || 'Gmail@2024';
+                document.getElementById('gmailUpdateTime').innerText = `সর্বশেষ আপডেট: ${updateTime}`;
+            }
+            if (adminSettings.adminInfo.facebook) {
+                document.getElementById('facebookAdminEmail').innerText = adminSettings.adminInfo.facebook.email || 'fb.sell@onlineproject.com';
+                document.getElementById('facebookAdminPassword').innerText = adminSettings.adminInfo.facebook.password || 'Facebook@2024';
+                document.getElementById('facebookUpdateTime').innerText = `সর্বশেষ আপডেট: ${updateTime}`;
+            }
+            if (adminSettings.adminInfo.telegram) {
+                document.getElementById('telegramAdminPhone').innerText = adminSettings.adminInfo.telegram.phone || '+8801700000000';
+                document.getElementById('telegramAdminPassword').innerText = adminSettings.adminInfo.telegram.password || 'Telegram@2024';
+                document.getElementById('telegramUpdateTime').innerText = `সর্বশেষ আপডেট: ${updateTime}`;
+            }
+            if (adminSettings.adminInfo.whatsapp) {
+                document.getElementById('whatsappAdminPhone').innerText = adminSettings.adminInfo.whatsapp.phone || '+8801700000000';
+                document.getElementById('whatsappAdminPassword').innerText = adminSettings.adminInfo.whatsapp.password || 'WhatsApp@2024';
+                document.getElementById('whatsappUpdateTime').innerText = `সর্বশেষ আপডেট: ${updateTime}`;
+            }
+        } else {
+            document.getElementById('gmailAdminEmail').innerText = adminSettings.gmail?.email || 'gmail.sell@onlineproject.com';
+            document.getElementById('gmailAdminPassword').innerText = adminSettings.gmail?.password || 'Gmail@2024';
+            document.getElementById('facebookAdminEmail').innerText = adminSettings.facebook?.email || 'fb.sell@onlineproject.com';
+            document.getElementById('facebookAdminPassword').innerText = adminSettings.facebook?.password || 'Facebook@2024';
+            document.getElementById('telegramAdminPhone').innerText = adminSettings.telegram?.phone || '+8801700000000';
+            document.getElementById('telegramAdminPassword').innerText = adminSettings.telegram?.password || 'Telegram@2024';
+            document.getElementById('whatsappAdminPhone').innerText = adminSettings.whatsapp?.phone || '+8801700000000';
+            document.getElementById('whatsappAdminPassword').innerText = adminSettings.whatsapp?.password || 'WhatsApp@2024';
+        }
+        
+        updateBanner();
+        updateHelpLinks();
+        
+        if (currentUser) {
+            updateUI();
+            updateAllProgressBars();
+        }
+    }
+
+    function showSigninPage() {
+        hideAllPages();
+        document.getElementById('signin-page').classList.add('active');
+        document.getElementById('login-page').classList.remove('active');
+        document.getElementById('bottomNav').style.display = 'none';
+    }
+
+    function showLoginPage() {
+        hideAllPages();
+        document.getElementById('signin-page').classList.remove('active');
+        document.getElementById('login-page').classList.add('active');
+        document.getElementById('bottomNav').style.display = 'none';
+    }
+
+    function showHomePage() {
+        hideAllPages();
+        document.getElementById('home-page').classList.add('active');
+        document.getElementById('bottomNav').style.display = 'flex';
+        
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelector('.nav-item[onclick="switchPage(\'home\')"]').classList.add('active');
+        
+        updateUI();
+        showWelcomeNotice();
+        updateBanner();
+        updateAllProgressBars();
+    }
+
+    function showWelcomeNotice() {
+        let notice = document.getElementById('welcomeNotice');
+        if (notice) notice.style.display = 'block';
+    }
+
+    function closeWelcomeNotice() {
+        let notice = document.getElementById('welcomeNotice');
+        if (notice) notice.style.display = 'none';
+    }
+
+    function joinTelegram() {
+        window.open(TELEGRAM_LINK, '_blank');
+    }
+
+    function hideAllPages() {
+        let pages = ['signin', 'login', 'home', 'wallet', 'help-center', 'profile', 'gmail-sell', 'facebook-sell', 'telegram-sell', 'whatsapp-sell', 'daily-bonus'];
+        pages.forEach(page => {
+            let el = document.getElementById(page + '-page');
+            if (el) el.classList.remove('active');
+        });
+    }
+
+    async function handleSignIn() {
+        let name = document.getElementById('signin-name').value.trim();
+        let email = document.getElementById('signin-email').value.trim();
+        let password = document.getElementById('signin-password').value.trim();
+
+        if (!name || !email || !password) {
+            showToast('সব ফিল্ড পূরণ করুন', 'error');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            await user.updateProfile({
+                displayName: name
+            });
+
+            const userData = {
+                name: name,
+                email: email,
+                gmailEarn: 0,
+                facebookEarn: 0,
+                telegramEarn: 0,
+                whatsappEarn: 0,
+                dailyBonus: 0,
+                manualAdded: 0,
+                manualRemoved: 0,
+                gmailCount: 0,
+                facebookCount: 0,
+                telegramCount: 0,
+                whatsappCount: 0,
+                totalWithdrawn: 0,
+                completedTasks: {
+                    gmail: false,
+                    facebook: false,
+                    telegram: false,
+                    whatsapp: false
+                },
+                createdAt: Date.now(),
+                banned: false
+            };
+
+            await database.ref('users/' + user.uid).set(userData);
+            
+            showToast('🎉 সাইন ইন সফল হয়েছে!', 'success');
+            
+        } catch (error) {
+            console.error('Signin error:', error);
+            
+            let errorMessage = 'সাইন ইন করতে সমস্যা হয়েছে: ';
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage += 'এই ইমেইল ইতিমধ্যে ব্যবহার করা হচ্ছে';
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage += 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage += 'ইমেইল ঠিক নয়';
+            } else {
+                errorMessage += error.message;
+            }
+            
+            showToast(errorMessage, 'error');
+            hideLoading();
+        }
+    }
+
+    async function handleLogin() {
+        let email = document.getElementById('login-email').value.trim();
+        let password = document.getElementById('login-password').value.trim();
+
+        if (!email || !password) {
+            showToast('ইমেইল ও পাসওয়ার্ড দিন', 'error');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            
+            const userRef = database.ref('users/' + user.uid);
+            const snapshot = await userRef.once('value');
+            
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                
+                if (userData.banned) {
+                    await auth.signOut();
+                    showToast('আপনার একাউন্ট ব্যান করা হয়েছে!', 'error');
+                    hideLoading();
+                    return;
+                }
+            }
+            
+            showToast('✅ লগইন সফল হয়েছে!', 'success');
+        } catch (error) {
+            console.error('Login error:', error);
+            
+            let errorMessage = 'লগইন করতে সমস্যা হয়েছে: ';
+            if (error.code === 'auth/user-not-found') {
+                errorMessage += 'এই ইমেইলে কোনো একাউন্ট নেই';
+            } else if (error.code === 'auth/wrong-password') {
+                errorMessage += 'ভুল পাসওয়ার্ড';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage += 'ইমেইল ঠিক নয়';
+            } else if (error.code === 'auth/too-many-requests') {
+                errorMessage += 'অনেকবার চেষ্টা করেছেন, পরে আবার চেষ্টা করুন';
+            } else {
+                errorMessage += error.message;
+            }
+            
+            showToast(errorMessage, 'error');
+            hideLoading();
+        }
+    }
+
+    async function switchPage(page) {
+        if (!currentUser) {
+            showToast('আপনাকে লগইন করতে হবে', 'error');
+            showLoginPage();
+            return;
+        }
+
+        hideAllPages();
+        document.getElementById(page + '-page').classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        event.target.closest('.nav-item').classList.add('active');
+        
+        const snapshot = await database.ref('users/' + currentUser.uid).once('value');
+        if (snapshot.exists()) {
+            currentUser = snapshot.val();
+            currentUser.uid = auth.currentUser.uid;
+            updateUI();
+            updateAllProgressBars();
+        }
+    }
+
+    function goBackToHome() {
+        hideAllPages();
+        document.getElementById('home-page').classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelector('.nav-item[onclick="switchPage(\'home\')"]').classList.add('active');
+        
+        showWelcomeNotice();
+        updateBanner();
+        updateAllProgressBars();
+    }
+
+    function showGmailSellPage() {
+        // প্রোজেক্ট বন্ধ থাকলে পেজে যেতে দেবেন না
+        if (adminSettings.gmail?.enabled === false) {
+            showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+            return;
+        }
+        hideAllPages();
+        document.getElementById('gmail-sell-page').classList.add('active');
+        updateTodayStatus('gmail');
+        updateProgressBar('gmail');
+    }
+
+    function showFacebookSellPage() {
+        if (adminSettings.facebook?.enabled === false) {
+            showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+            return;
+        }
+        hideAllPages();
+        document.getElementById('facebook-sell-page').classList.add('active');
+        updateTodayStatus('facebook');
+        updateProgressBar('facebook');
+    }
+
+    function showTelegramSellPage() {
+        if (adminSettings.telegram?.enabled === false) {
+            showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+            return;
+        }
+        hideAllPages();
+        document.getElementById('telegram-sell-page').classList.add('active');
+        updateTodayStatus('telegram');
+        updateProgressBar('telegram');
+    }
+
+    function showWhatsappSellPage() {
+        if (adminSettings.whatsapp?.enabled === false) {
+            showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+            return;
+        }
+        hideAllPages();
+        document.getElementById('whatsapp-sell-page').classList.add('active');
+        updateTodayStatus('whatsapp');
+        updateProgressBar('whatsapp');
+    }
+
+    function showDailyBonusPage() {
+        hideAllPages();
+        document.getElementById('daily-bonus-page').classList.add('active');
+        updateDailyBonusStatus();
+    }
+
+    function updateUI() {
+        if (!currentUser) return;
+
+        document.getElementById('profileName').innerText = currentUser.name || '-';
+        document.getElementById('profileEmail').innerText = currentUser.email || '-';
+
+        let totalEarned = (currentUser.gmailEarn || 0) + (currentUser.facebookEarn || 0) + 
+                         (currentUser.telegramEarn || 0) + (currentUser.whatsappEarn || 0) + 
+                         (currentUser.dailyBonus || 0);
+        
+        let manualAdded = currentUser.manualAdded || 0;
+        let manualRemoved = currentUser.manualRemoved || 0;
+        let totalWithdrawn = currentUser.totalWithdrawn || 0;
+        let currentBalance = totalEarned + manualAdded - manualRemoved - totalWithdrawn;
+        
+        document.getElementById('walletBalance').innerText = `৳ ${currentBalance}`;
+        document.getElementById('gmailEarn').innerText = `৳ ${currentUser.gmailEarn || 0}`;
+        document.getElementById('facebookEarn').innerText = `৳ ${currentUser.facebookEarn || 0}`;
+        document.getElementById('telegramEarn').innerText = `৳ ${currentUser.telegramEarn || 0}`;
+        document.getElementById('whatsappEarn').innerText = `৳ ${currentUser.whatsappEarn || 0}`;
+        document.getElementById('bonusEarn').innerText = `৳ ${currentUser.dailyBonus || 0}`;
+        document.getElementById('manualAdded').innerText = `৳ ${manualAdded}`;
+        document.getElementById('manualRemoved').innerText = `৳ ${manualRemoved}`;
+        document.getElementById('totalEarn').innerText = `৳ ${currentBalance}`;
+
+        updateDailyBonusStatus();
+        updateAllProgressBars();
+    }
+
+    function updateDailyBonusStatus() {
+        if (!currentUser || !currentUser.completedTasks) return;
+        
+        let completed = 0;
+        if (currentUser.completedTasks.gmail) completed++;
+        if (currentUser.completedTasks.facebook) completed++;
+        if (currentUser.completedTasks.telegram) completed++;
+        if (currentUser.completedTasks.whatsapp) completed++;
+        
+        let progress = Math.round((completed / 4) * 100);
+        document.getElementById('dailyBonusProgress').innerText = progress + '% সম্পন্ন';
+        
+        document.getElementById('task1Status').style.opacity = currentUser.completedTasks.gmail ? '1' : '0.3';
+        document.getElementById('task2Status').style.opacity = currentUser.completedTasks.facebook ? '1' : '0.3';
+        document.getElementById('task3Status').style.opacity = currentUser.completedTasks.telegram ? '1' : '0.3';
+        document.getElementById('task4Status').style.opacity = currentUser.completedTasks.whatsapp ? '1' : '0.3';
+        
+        if (completed === 4) {
+            document.getElementById('bonusClaimSection').style.display = 'block';
+        } else {
+            document.getElementById('bonusClaimSection').style.display = 'none';
+        }
+    }
+
+    function updateTodayStatus(type) {
+        let today = new Date().toLocaleDateString('bn-BD');
+        
+        const todayTask = sellHistory.filter(task => 
+            task.type === type && task.date === today
+        );
+        
+        let statusDiv = document.getElementById(type + '-today-status');
+        
+        const todayCount = todayTask.length;
+        const currentCount = currentUser[type + 'Count'] || 0;
+        const remainingCount = MAX_TASKS - currentCount;
+        
+        if (todayCount > 0) {
+            let statusHtml = '';
+            
+            todayTask.forEach(task => {
+                if (task.status === 'approved') {
+                    statusHtml += '<div class="status-badge success" style="margin-bottom: 5px;"><i class="fas fa-check-circle"></i> একটি কাজ সফল হয়েছে</div>';
+                } else if (task.status === 'rejected') {
+                    statusHtml += '<div class="status-badge pending" style="margin-bottom: 5px;"><i class="fas fa-times-circle"></i> একটি কাজ বাতিল হয়েছে</div>';
+                } else {
+                    statusHtml += '<div class="status-badge pending" style="margin-bottom: 5px;"><i class="fas fa-clock"></i> একটি কাজ পেন্ডিং আছে</div>';
+                }
+            });
+            
+            statusHtml += `<div class="info-box" style="margin-top: 10px; padding: 8px; font-size: 13px;">
+                <i class="fas fa-info-circle"></i> আজকে ${todayCount}টি কাজ জমা দিয়েছেন, আরও ${remainingCount}টি কাজ বাকি
+            </div>`;
+            
+            statusDiv.innerHTML = statusHtml;
+        } else {
+            statusDiv.innerHTML = `<div class="status-badge info"><i class="fas fa-info-circle"></i> আজ কোন কাজ submit করেননি (আরও ${remainingCount}টি কাজ করতে পারবেন)</div>`;
+        }
+    }
+
+    async function submitSellTask(type) {
+        if (!currentUser) {
+            showToast('আপনাকে লগইন করতে হবে', 'error');
+            return;
+        }
+
+        // প্রোজেক্ট বন্ধ আছে কিনা চেক করুন
+        if (adminSettings[type]?.enabled === false) {
+            showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+            return;
+        }
+
+        const currentCount = currentUser[type + 'Count'] || 0;
+        if (currentCount >= MAX_TASKS) {
+            showToast(`আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।`, 'error');
+            
+            const limitMessage = document.getElementById(type + 'LimitMessage');
+            if (limitMessage) {
+                limitMessage.style.display = 'flex';
+                const messageSpan = document.getElementById(type + 'LimitMessageText');
+                if (messageSpan) {
+                    messageSpan.innerText = 'আজকের মতো আপনার কাজের লিমিট শেষ। আগামীকাল আবার চেষ্টা করুন।';
+                }
+            }
+            return;
+        }
+
+        let data = {};
+        let price = 10;
+        
+        switch(type) {
+            case 'gmail':
+                data.email = document.getElementById('gmail-email')?.value;
+                data.password = document.getElementById('gmail-password')?.value;
+                if (!data.email || !data.password) {
+                    showToast('সব তথ্য দিন', 'error');
+                    return;
+                }
+                price = parseInt(document.getElementById('gmailPriceValue').innerText) || 10;
+                break;
+            case 'facebook':
+                data.email = document.getElementById('facebook-email')?.value;
+                data.password = document.getElementById('facebook-password')?.value;
+                if (!data.email || !data.password) {
+                    showToast('সব তথ্য দিন', 'error');
+                    return;
+                }
+                price = parseInt(document.getElementById('facebookPriceValue').innerText) || 10;
+                break;
+            case 'telegram':
+                data.phone = document.getElementById('telegram-phone')?.value;
+                data.userid = document.getElementById('telegram-userid')?.value;
+                if (!data.phone || !data.userid) {
+                    showToast('সব তথ্য দিন', 'error');
+                    return;
+                }
+                price = parseInt(document.getElementById('telegramPriceValue').innerText) || 15;
+                break;
+            case 'whatsapp':
+                data.phone = document.getElementById('whatsapp-phone')?.value;
+                if (!data.phone) {
+                    showToast('ফোন নাম্বার দিন', 'error');
+                    return;
+                }
+                price = parseInt(document.getElementById('whatsappPriceValue').innerText) || 15;
+                break;
+        }
+
+        let today = new Date().toLocaleDateString('bn-BD');
+        
+        const todayTasks = sellHistory.filter(task => task.type === type && task.date === today);
+        const todaySubmitCount = todayTasks.length;
+        
+        if (todaySubmitCount >= MAX_TASKS) {
+            showToast(`আজকে আপনি সর্বোচ্চ ${MAX_TASKS}টি কাজ জমা দিতে পারবেন`, 'error');
+            return;
+        }
+        
+        const taskData = {
+            type: type,
+            date: today,
+            status: 'pending',
+            data: data,
+            price: price,
+            timestamp: Date.now()
+        };
+        
+        sellHistory.push(taskData);
+        
+        showLoading();
+        
+        try {
+            await database.ref('sellHistory/' + currentUser.uid).set(sellHistory);
+            
+            showToast(`✅ আপনার কাজ জমা হয়েছে। আজকে আপনি ${todaySubmitCount + 1}টি কাজ জমা দিয়েছেন।`, 'success');
+            
+            updateTodayStatus(type);
+            updateProgressBar(type);
+            
+            switch(type) {
+                case 'gmail':
+                    document.getElementById('gmail-email').value = '';
+                    document.getElementById('gmail-password').value = '';
+                    break;
+                case 'facebook':
+                    document.getElementById('facebook-email').value = '';
+                    document.getElementById('facebook-password').value = '';
+                    break;
+                case 'telegram':
+                    document.getElementById('telegram-phone').value = '';
+                    document.getElementById('telegram-userid').value = '';
+                    break;
+                case 'whatsapp':
+                    document.getElementById('whatsapp-phone').value = '';
+                    break;
+            }
+            
+        } catch (error) {
+            console.error('Task submit error:', error);
+            showToast('কাজ জমা দিতে সমস্যা হয়েছে: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function showSellHistory(type) {
+        const typeTasks = sellHistory.filter(task => task.type === type).reverse();
+        const typeName = {
+            gmail: 'জি মেইল',
+            facebook: 'ফেসবুক',
+            telegram: 'টেলিগ্রাম',
+            whatsapp: 'হোয়াটসঅ্যাপ'
+        }[type];
+        
+        let html = `<div class="modal-header"><h3>📋 ${typeName} সেল হিস্টোরি</h3><span class="close-btn" onclick="closeModal()">&times;</span></div>`;
+        
+        if (typeTasks.length === 0) {
+            html += '<p style="text-align: center; padding: 20px;">কোনো ইতিহাস নেই</p>';
+        } else {
+            const groupedByDate = {};
+            typeTasks.forEach(task => {
+                if (!groupedByDate[task.date]) {
+                    groupedByDate[task.date] = [];
+                }
+                groupedByDate[task.date].push(task);
+            });
+            
+            for (let date in groupedByDate) {
+                const dailyTasks = groupedByDate[date];
+                const approvedCount = dailyTasks.filter(t => t.status === 'approved').length;
+                const pendingCount = dailyTasks.filter(t => t.status === 'pending').length;
+                const rejectedCount = dailyTasks.filter(t => t.status === 'rejected').length;
+                
+                html += `<div style="margin-bottom: 15px; background: #f8f9ff; padding: 10px; border-radius: 10px;">
+                    <div style="font-weight: bold; margin-bottom: 8px; color: #667eea;">📅 ${date} (${dailyTasks.length}টি কাজ)</div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                        <span style="color: #28a745;"><i class="fas fa-check-circle"></i> সফল: ${approvedCount}</span>
+                        <span style="color: #ff9800;"><i class="fas fa-clock"></i> পেন্ডিং: ${pendingCount}</span>
+                        <span style="color: #dc3545;"><i class="fas fa-times-circle"></i> বাতিল: ${rejectedCount}</span>
+                    </div>
+                </div>`;
+            }
+        }
+        
+        showModal(html);
+    }
+
+    function showWithdrawHistory() {
+        let html = `<div class="modal-header"><h3>📋 উত্তলন হিস্টোরি</h3><span class="close-btn" onclick="closeModal()">&times;</span></div>`;
+        
+        if (withdrawHistory.length === 0) {
+            html += '<p style="text-align: center; padding: 20px;">কোনো উত্তলনের ইতিহাস নেই</p>';
+        } else {
+            withdrawHistory.reverse().forEach(item => {
+                let statusClass = 'pending-box';
+                let statusText = '⏳ পেন্ডিং';
+                let statusIcon = 'fas fa-clock';
+                
+                if (item.status === 'approved') {
+                    statusClass = 'success-box';
+                    statusText = '✅ সফল';
+                    statusIcon = 'fas fa-check-circle';
+                } else if (item.status === 'rejected') {
+                    statusClass = 'pending-box';
+                    statusText = '❌ বাতিল';
+                    statusIcon = 'fas fa-times-circle';
+                }
+                
+                html += `<div class="${statusClass}">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div><strong>📅 তারিখ:</strong> ${new Date(item.createdAt).toLocaleDateString('bn-BD')}</div>
+                        <div><strong>💰 পরিমাণ:</strong> ৳${item.amount}</div>
+                    </div>
+                    <div><strong>📞 বিকাশ:</strong> ${item.number}</div>
+                    <div><strong>📊 অবস্থা:</strong> <span style="color: ${item.status === 'approved' ? '#28a745' : '#ff9800'}"><i class="${statusIcon}"></i> ${statusText}</span></div>
+                </div>`;
+            });
+        }
+        
+        showModal(html);
+    }
+
+    function completeTask(type) {
+        if (!currentUser) {
+            showToast('আপনাকে লগইন করতে হবে', 'error');
+            return;
+        }
+        
+        // প্রোজেক্ট বন্ধ থাকলে চেক
+        if (adminSettings[type]?.enabled === false) {
+            showToast('এই প্রোজেক্টটি বন্ধ আছে', 'error');
+            return;
+        }
+        
+        if (currentUser.completedTasks && currentUser.completedTasks[type]) {
+            showToast('আপনি এই কাজ ইতিমধ্যে সম্পন্ন করেছেন!', 'error');
+        } else {
+            switch(type) {
+                case 'gmail': showGmailSellPage(); break;
+                case 'facebook': showFacebookSellPage(); break;
+                case 'telegram': showTelegramSellPage(); break;
+                case 'whatsapp': showWhatsappSellPage(); break;
+            }
+        }
+    }
+
+    async function claimBonus() {
+        if (!currentUser) return;
+        
+        if (currentUser.completedTasks && currentUser.completedTasks.gmail && 
+            currentUser.completedTasks.facebook && currentUser.completedTasks.telegram && 
+            currentUser.completedTasks.whatsapp) {
+            
+            showLoading();
+            
+            try {
+                const bonusAmount = adminSettings.bonus || 50;
+                
+                await database.ref('users/' + currentUser.uid).update({
+                    dailyBonus: (currentUser.dailyBonus || 0) + bonusAmount,
+                    completedTasks: {
+                        gmail: false,
+                        facebook: false,
+                        telegram: false,
+                        whatsapp: false
+                    }
+                });
+                
+                currentUser.dailyBonus = (currentUser.dailyBonus || 0) + bonusAmount;
+                currentUser.completedTasks = {
+                    gmail: false,
+                    facebook: false,
+                    telegram: false,
+                    whatsapp: false
+                };
+                
+                showToast(`🎉 অভিনন্দন! আপনি ${bonusAmount} টাকা বোনাস পেয়েছেন!`, 'success');
+                updateUI();
+                animateBalanceChange();
+                goBackToHome();
+            } catch (error) {
+                console.error('Claim bonus error:', error);
+                showToast('বোনাস ক্লেইম করতে সমস্যা হয়েছে: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        } else {
+            showToast('সব কাজ সম্পন্ন করে তারপর বোনাস নিন!', 'error');
+        }
+    }
+
+    function copyText(elementId) {
+        let text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            let feedback = document.getElementById('copyFeedback');
+            feedback.style.display = 'block';
+            setTimeout(() => {
+                feedback.style.display = 'none';
+            }, 2000);
+        }).catch(() => {
+            showToast('টেক্সট: ' + text, 'info');
+        });
+    }
+
+    async function showLeaderboard() {
+        showLoading();
+        try {
+            const usersSnapshot = await database.ref('users')
+                .orderByChild('gmailEarn')
+                .limitToLast(10)
+                .once('value');
+            
+            let html = `
+                <div class="modal-header"><h3>🏆 লিডারশিপ বোর্ড</h3><span class="close-btn" onclick="closeModal()">&times;</span></div>
+            `;
+            
+            let users = [];
+            usersSnapshot.forEach((childSnapshot) => {
+                users.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            
+            users.sort((a, b) => {
+                let aTotal = (a.gmailEarn || 0) + (a.facebookEarn || 0) + (a.telegramEarn || 0) + (a.whatsappEarn || 0) + (a.dailyBonus || 0) + (a.manualAdded || 0) - (a.manualRemoved || 0) - (a.totalWithdrawn || 0);
+                let bTotal = (b.gmailEarn || 0) + (b.facebookEarn || 0) + (b.telegramEarn || 0) + (b.whatsappEarn || 0) + (b.dailyBonus || 0) + (b.manualAdded || 0) - (b.manualRemoved || 0) - (b.totalWithdrawn || 0);
+                return bTotal - aTotal;
+            });
+            
+            if (users.length === 0) {
+                html += '<div class="info-box">কোনো ইউজার নেই</div>';
+            } else {
+                let rank = 1;
+                users.slice(0, 10).forEach(user => {
+                    let totalBalance = (user.gmailEarn || 0) + (user.facebookEarn || 0) + (user.telegramEarn || 0) + (user.whatsappEarn || 0) + (user.dailyBonus || 0) + (user.manualAdded || 0) - (user.manualRemoved || 0) - (user.totalWithdrawn || 0);
+                    let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '📌';
+                    html += `<div class="info-box">${medal} ${rank}. ${user.name} - ৳ ${totalBalance}</div>`;
+                    rank++;
+                });
+            }
+            
+            showModal(html);
+        } catch (error) {
+            console.error('Leaderboard error:', error);
+            showToast('লিডারশিপ লোড করতে সমস্যা হয়েছে: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // উত্তলন মডাল দেখান (বিকাশ স্টাইল)
+    function showWithdrawModal() {
+        if (!currentUser) return;
+        
+        const currentBalance = calculateUserBalance(currentUser);
+        
+        const html = `
+            <div class="withdraw-header">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h3>টাকা উত্তলন</h3>
+                <p>বিকাশ মাধ্যমে পেমেন্ট</p>
+            </div>
+            <div class="withdraw-body">
+                <div class="balance-display">
+                    <span class="label">বর্তমান ব্যালেন্স</span>
+                    <span class="amount">৳ ${currentBalance}</span>
+                </div>
+                
+                <div class="withdraw-note">
+                    <i class="fas fa-info-circle"></i>
+                    ন্যূনতম উত্তলন ১০০ টাকা
+                </div>
+                
+                <div class="bkash-input-group">
+                    <label>📱 বিকাশ নাম্বার</label>
+                    <div class="bkash-input-wrapper">
+                        <span class="bkash-prefix">+880</span>
+                        <input type="text" id="withdrawNumber" placeholder="1XXXXXXXXX" maxlength="10">
+                    </div>
+                </div>
+                
+                <div class="bkash-input-group">
+                    <label>💰 পরিমাণ (টাকা)</label>
+                    <div class="bkash-input-wrapper">
+                        <span class="bkash-prefix">৳</span>
+                        <input type="number" id="withdrawAmount" placeholder="পরিমাণ লিখুন" min="100" max="${currentBalance}">
+                    </div>
+                </div>
+                
+                <div class="info-box" style="margin: 10px 0;">
+                    <i class="fas fa-clock"></i> উত্তলন সম্পন্ন হতে ২৪-৪৮ ঘন্টা সময় লাগতে পারে
+                </div>
+                
+                <button class="withdraw-submit-btn" onclick="requestWithdraw()" id="withdrawSubmitBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    উত্তলন রিকুয়েস্ট পাঠান
+                </button>
+            </div>
+            <div class="modal-header" style="padding: 15px; border-top: 1px solid #eee;">
+                <span></span>
+                <span class="close-btn" onclick="closeWithdrawModal()">&times;</span>
+            </div>
+        `;
+        
+        document.getElementById('withdrawModalContent').innerHTML = html;
+        document.getElementById('withdrawModal').classList.add('active');
+    }
+
+    function closeWithdrawModal() {
+        document.getElementById('withdrawModal').classList.remove('active');
+    }
+
+    async function requestWithdraw() {
+        if (!currentUser) return;
+        
+        let number = document.getElementById('withdrawNumber')?.value;
+        let amount = parseFloat(document.getElementById('withdrawAmount')?.value);
+        const submitBtn = document.getElementById('withdrawSubmitBtn');
+        
+        // ফরম্যাট চেক
+        if (number) {
+            // +880 ছাড়া শুধু নাম্বার নেওয়া
+            number = number.replace(/\D/g, '');
+            if (number.length === 10) {
+                number = '0' + number; // 01XXXXXXXXX ফরম্যাট
+            }
+        }
+        
+        const currentBalance = calculateUserBalance(currentUser);
+        
+        if (!number || !amount) {
+            showToast('সব তথ্য দিন', 'error');
+            return;
+        }
+        
+        if (number.length !== 11 || !number.startsWith('01')) {
+            showToast('সঠিক বিকাশ নাম্বার দিন (01XXXXXXXXX)', 'error');
+            return;
+        }
+        
+        if (amount > currentBalance) {
+            showToast('পর্যাপ্ত ব্যালেন্স নেই!', 'error');
+            return;
+        }
+        
+        if (amount < 100) {
+            showToast('সর্বনিম্ন উত্তলন ১০০ টাকা', 'error');
+            return;
+        }
+        
+        // বাটন ডিজেবল করুন যাতে ডাবল ক্লিক না হয়
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> প্রসেসিং...';
+        
+        showLoading();
+        
+        try {
+            const withdrawData = {
+                userId: currentUser.uid,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                number: number,
+                amount: amount,
+                status: 'pending',
+                createdAt: Date.now()
+            };
+            
+            const newWithdrawRef = await database.ref('withdrawals').push(withdrawData);
+            
+            withdrawHistory.push({
+                id: newWithdrawRef.key,
+                ...withdrawData
+            });
+            
+            showToast('✅ উত্তলন রিকুয়েস্ট পাঠানো হয়েছে', 'success');
+            closeWithdrawModal();
+            
+        } catch (error) {
+            console.error('Withdraw request error:', error);
+            showToast('উত্তলন রিকুয়েস্ট পাঠাতে সমস্যা হয়েছে: ' + error.message, 'error');
+            
+            // বাটন পুনরায় সক্রিয়
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> উত্তলন রিকুয়েস্ট পাঠান';
+        } finally {
+            hideLoading();
+        }
+    }
+
+    async function showNoticeModal() {
+        let html = `
+            <div class="modal-header"><h3>📢 নোটিশ</h3><span class="close-btn" onclick="closeModal()">&times;</span></div>
+            <div class="info-box">${adminSettings.notice || 'কোনো নোটিশ নেই'}</div>
+        `;
+        showModal(html);
+    }
+
+    function showHelpLine() {
+        let html = `
+            <div class="modal-header"><h3>🆘 হেল্প লাইন</h3><span class="close-btn" onclick="closeModal()">&times;</span></div>
+            <div class="help-item" style="cursor: default;" onclick="openHelpLink('facebook')">
+                <div class="help-icon" style="width: 40px; height: 40px; font-size: 18px;"><i class="fab fa-facebook"></i></div>
+                <div class="help-content"><h4>${adminSettings.helpLinks?.facebook?.display || 'fb.me/onlineproject'}</h4></div>
+            </div>
+            <div class="help-item" style="cursor: default;" onclick="openHelpLink('youtube')">
+                <div class="help-icon" style="width: 40px; height: 40px; font-size: 18px;"><i class="fab fa-youtube"></i></div>
+                <div class="help-content"><h4>${adminSettings.helpLinks?.youtube?.display || 'youtube.com/@onlineproject'}</h4></div>
+            </div>
+            <div class="help-item" style="cursor: default;" onclick="openHelpLink('telegram')">
+                <div class="help-icon" style="width: 40px; height: 40px; font-size: 18px;"><i class="fab fa-telegram"></i></div>
+                <div class="help-content"><h4>${adminSettings.helpLinks?.telegram?.display || 't.me/onlineproject'}</h4></div>
+            </div>
+            <div class="help-item" style="cursor: default;" onclick="openHelpLink('whatsapp')">
+                <div class="help-icon" style="width: 40px; height: 40px; font-size: 18px;"><i class="fab fa-whatsapp"></i></div>
+                <div class="help-content"><h4>${adminSettings.helpLinks?.whatsapp?.display || 'wa.me/8801700000000'}</h4></div>
+            </div>
+        `;
+        showModal(html);
+    }
+
+    function editProfile() {
+        if (!currentUser) return;
+        
+        let html = `
+            <div class="modal-header"><h3>✏️ প্রোফাইল এডিট</h3><span class="close-btn" onclick="closeModal()">&times;</span></div>
+            <input class="task-input" id="editName" value="${currentUser.name || ''}">
+            <input class="task-input" id="editEmail" value="${currentUser.email || ''}" disabled>
+            <button class="submit-btn" onclick="saveProfile()">💾 সেভ করুন</button>
+        `;
+        showModal(html);
+    }
+
+    async function saveProfile() {
+        if (!currentUser) return;
+        
+        let name = document.getElementById('editName').value;
+        
+        if (name) {
+            showLoading();
+            try {
+                await database.ref('users/' + currentUser.uid).update({
+                    name: name
+                });
+                
+                const user = auth.currentUser;
+                if (user) {
+                    await user.updateProfile({
+                        displayName: name
+                    });
+                }
+                
+                currentUser.name = name;
+                updateUI();
+                closeModal();
+                showToast('✅ প্রোফাইল আপডেট হয়েছে', 'success');
+            } catch (error) {
+                console.error('Profile update error:', error);
+                showToast('প্রোফাইল আপডেট করতে সমস্যা হয়েছে: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+    }
+
+    function showModal(content) {
+        document.getElementById('modalContent').innerHTML = content;
+        document.getElementById('modalContainer').classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('modalContainer').classList.remove('active');
+    }
+
+    async function logout() {
+        showLoading();
+        try {
+            await auth.signOut();
+            currentUser = null;
+            sellHistory = [];
+            withdrawHistory = [];
+            
+            const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
+            types.forEach(type => {
+                if (resetTimers[type]) {
+                    clearInterval(resetTimers[type]);
+                }
+            });
+            
+            showSigninPage();
+        } catch (error) {
+            console.error('Logout error:', error);
+            showToast('লগআউট করতে সমস্যা হয়েছে: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // মডালের বাইরে ক্লিক
+    document.getElementById('modalContainer').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    
+    document.getElementById('withdrawModal').addEventListener('click', function(e) {
+        if (e.target === this) closeWithdrawModal();
+    });
+</script>
+</body>
+</html>
