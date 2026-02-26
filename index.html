@@ -493,7 +493,7 @@
             font-size: 16px;
         }
 
-        .input-group input {
+        .input-group input, .input-group textarea, .input-group select {
             width: 100%;
             padding: 15px 15px 15px 45px;
             border: 2px solid #eaeef5;
@@ -503,14 +503,19 @@
             background: #f8faff;
         }
 
-        .input-group input:focus {
+        .input-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
             border-color: #667eea;
             background: white;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
             outline: none;
         }
 
-        .input-group input:disabled {
+        .input-group input:disabled, .input-group textarea:disabled {
             background: #f0f0f0;
             cursor: not-allowed;
             opacity: 0.7;
@@ -567,6 +572,11 @@
         .status-badge.info {
             background: #e3f2fd;
             color: #2196f3;
+        }
+
+        .status-badge.blood {
+            background: #ffebee;
+            color: #dc3545;
         }
 
         .status-badge i {
@@ -673,6 +683,126 @@
         .withdraw-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        /* রক্ত দান কার্ড */
+        .blood-card {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .blood-card::before {
+            content: '❤️';
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 100px;
+            opacity: 0.1;
+            transform: rotate(15deg);
+        }
+
+        .blood-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(220, 53, 69, 0.4);
+        }
+
+        .blood-card .blood-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .blood-card .blood-title i {
+            font-size: 28px;
+        }
+
+        .blood-card .blood-description {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .blood-card .blood-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .blood-card .blood-meta i {
+            margin-right: 5px;
+        }
+
+        .blood-request-item {
+            background: #fff5f5;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ffcdd2;
+            border-left: 4px solid #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .blood-request-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.1);
+        }
+
+        .blood-request-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .blood-request-name {
+            font-weight: 600;
+            color: #dc3545;
+            font-size: 16px;
+        }
+
+        .blood-request-date {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .blood-request-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .blood-request-info i {
+            color: #dc3545;
+            width: 18px;
+            margin-right: 5px;
+        }
+
+        .blood-request-contact {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #eaeef5;
+        }
+
+        .blood-request-contact i {
+            color: #28a745;
+            margin-right: 5px;
         }
 
         /* হেল্প সেন্টার স্টাইল */
@@ -1065,6 +1195,11 @@
             border-left: 4px solid #ff9800;
         }
 
+        .blood-box {
+            background: #ffebee;
+            border-left: 4px solid #dc3545;
+        }
+
         /* কপি ফিডব্যাক */
         .copy-feedback {
             position: fixed;
@@ -1292,6 +1427,41 @@
             font-weight: bold;
         }
 
+        /* জেলা ড্রপডাউন */
+        .district-select {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #eaeef5;
+            border-radius: 15px;
+            font-size: 15px;
+            background: #f8faff;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+        }
+
+        .district-select:focus {
+            border-color: #667eea;
+            background: white;
+            outline: none;
+        }
+
+        /* রক্তের গ্রুপ ব্যাজ */
+        .blood-group-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
         /* গ্রিড */
         .grid-2 {
             display: grid;
@@ -1469,9 +1639,10 @@
                 <span>ডেইলি বোনাস</span>
                 <div style="font-size: 12px; color: #28a745;" id="dailyBonusProgress">০% সম্পন্ন</div>
             </div>
-            <div class="feature-card" onclick="showLeaderboard()">
-                <i class="fas fa-trophy"></i>
-                <span>লিডারশিপ</span>
+            <div class="feature-card" onclick="showBloodDonationPage()">
+                <i class="fas fa-heart" style="color: #dc3545;"></i>
+                <span>রক্ত দান করুন</span>
+                <div style="font-size: 12px; color: #dc3545;" id="bloodDonationCount">০টি পোস্ট</div>
             </div>
         </div>
 
@@ -2057,6 +2228,145 @@
         </div>
     </div>
 
+    <!-- রক্ত দান পেজ (নতুন) -->
+    <div id="blood-donation-page" class="page">
+        <div class="app-header">
+            <i class="fas fa-arrow-left back-btn" onclick="goBackToHome()"></i>
+            <h2>❤️ রক্ত দান করুন</h2>
+            <i class="fas fa-history" onclick="showBloodDonationHistory()"></i>
+        </div>
+
+        <!-- এডমিনের পোস্ট - যদি থাকে -->
+        <div id="adminBloodPost" class="blood-card" onclick="showBloodDonationForm()" style="display: none;">
+            <div class="blood-title">
+                <i class="fas fa-heartbeat"></i>
+                <span id="adminBloodTitle">রক্ত প্রয়োজন!</span>
+            </div>
+            <div class="blood-description" id="adminBloodDescription">
+                জরুরি রক্তের প্রয়োজন। নিচের তথ্য দিন।
+            </div>
+            <div class="blood-meta">
+                <span><i class="fas fa-tint"></i> <span id="adminBloodGroup">যে কোনো গ্রুপ</span></span>
+                <span><i class="fas fa-map-marker-alt"></i> <span id="adminBloodLocation">স্থানীয় হাসপাতাল</span></span>
+            </div>
+            <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
+                <i class="fas fa-clock"></i> পোস্ট করা হয়েছে: <span id="adminBloodTime">এখনই</span>
+            </div>
+        </div>
+
+        <!-- যদি কোনো পোস্ট না থাকে -->
+        <div id="noBloodPost" class="info-box" style="display: none;">
+            <i class="fas fa-info-circle"></i> বর্তমানে কোনো রক্ত দানের প্রয়োজন নেই।
+        </div>
+
+        <!-- রক্ত দান ফর্ম (ডিফল্ট লুকানো) -->
+        <div id="bloodDonationForm" style="display: none;">
+            <div class="section-title">📝 আপনার তথ্য দিন</div>
+            
+            <div class="form-section">
+                <div class="input-group">
+                    <label>আপনার নাম</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="blood-name" placeholder="আপনার নাম" value="" readonly>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>মোবাইল নাম্বার</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="blood-phone" placeholder="০১XXXXXXXXX">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>জেলা</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select class="district-select" id="blood-district">
+                            <option value="">জেলা নির্বাচন করুন</option>
+                            <option value="ঢাকা">ঢাকা</option>
+                            <option value="চট্টগ্রাম">চট্টগ্রাম</option>
+                            <option value="রাজশাহী">রাজশাহী</option>
+                            <option value="খুলনা">খুলনা</option>
+                            <option value="বরিশাল">বরিশাল</option>
+                            <option value="সিলেট">সিলেট</option>
+                            <option value="রংপুর">রংপুর</option>
+                            <option value="ময়মনসিংহ">ময়মনসিংহ</option>
+                            <option value="কুমিল্লা">কুমিল্লা</option>
+                            <option value="নোয়াখালী">নোয়াখালী</option>
+                            <option value="বগুড়া">বগুড়া</option>
+                            <option value="পাবনা">পাবনা</option>
+                            <option value="যশোর">যশোর</option>
+                            <option value="কক্সবাজার">কক্সবাজার</option>
+                            <option value="গাজীপুর">গাজীপুর</option>
+                            <option value="নারায়ণগঞ্জ">নারায়ণগঞ্জ</option>
+                            <option value="টাঙ্গাইল">টাঙ্গাইল</option>
+                            <option value="ফরিদপুর">ফরিদপুর</option>
+                            <option value="মাদারীপুর">মাদারীপুর</option>
+                            <option value="শরীয়তপুর">শরীয়তপুর</option>
+                            <option value="মানিকগঞ্জ">মানিকগঞ্জ</option>
+                            <option value="মুন্সীগঞ্জ">মুন্সীগঞ্জ</option>
+                            <option value="নরসিংদী">নরসিংদী</option>
+                            <option value="কিশোরগঞ্জ">কিশোরগঞ্জ</option>
+                            <option value="হবিগঞ্জ">হবিগঞ্জ</option>
+                            <option value="ব্রাহ্মণবাড়িয়া">ব্রাহ্মণবাড়িয়া</option>
+                            <option value="চাঁদপুর">চাঁদপুর</option>
+                            <option value="লক্ষ্মীপুর">লক্ষ্মীপুর</option>
+                            <option value="ফেনী">ফেনী</option>
+                            <option value="রাঙ্গামাটি">রাঙ্গামাটি</option>
+                            <option value="বান্দরবান">বান্দরবান</option>
+                            <option value="খাগড়াছড়ি">খাগড়াছড়ি</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>ঠিকানা (বিস্তারিত)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-home"></i>
+                        <textarea id="blood-address" placeholder="আপনার বিস্তারিত ঠিকানা লিখুন" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>রক্তের গ্রুপ (ঐচ্ছিক)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tint"></i>
+                        <select class="district-select" id="blood-group">
+                            <option value="">নির্বাচন করুন (ঐচ্ছিক)</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="blood-box" style="margin-top: 15px;">
+                    <i class="fas fa-heart"></i> আপনার তথ্য এডমিনের কাছে পাঠানো হবে। রক্তদানে আগ্রহী হলে এডমিন আপনাকে যোগাযোগ করবেন।
+                </div>
+
+                <button class="submit-btn" onclick="submitBloodDonation()">
+                    <i class="fas fa-hand-holding-heart"></i> রক্ত দানে আগ্রহ প্রকাশ করুন
+                </button>
+            </div>
+        </div>
+
+        <!-- যারা ইতিমধ্যে রক্ত দিতে চেয়েছে তাদের লিস্ট (শুধু নিজের এন্ট্রি দেখাবে) -->
+        <div id="myBloodRequests" style="margin-top: 20px;">
+            <div class="section-title">
+                <i class="fas fa-history"></i> আমার রক্তদানের ইতিহাস
+            </div>
+            <div id="myBloodRequestsList"></div>
+        </div>
+    </div>
+
     <!-- ওয়ালেট পেজ -->
     <div id="wallet-page" class="page">
         <div class="app-header">
@@ -2206,6 +2516,11 @@
         <div class="modal-content withdraw-modal" id="withdrawModalContent"></div>
     </div>
 
+    <!-- রক্ত দান ফর্ম মডাল -->
+    <div id="bloodFormModal" class="modal">
+        <div class="modal-content" id="bloodFormContent"></div>
+    </div>
+
     <!-- কপি ফিডব্যাক -->
     <div id="copyFeedback" class="copy-feedback">✅ কপি হয়েছে!</div>
 </div>
@@ -2230,6 +2545,8 @@
     let currentUser = null;
     let sellHistory = [];
     let withdrawHistory = [];
+    let bloodDonations = [];
+    let bloodPost = null;
     let resetTimers = {};
     let adminSettings = {
         gmail: { price: 10, email: 'gmail.sell@onlineproject.com', password: 'Gmail@2024', enabled: true },
@@ -2244,6 +2561,14 @@
             youtube: { url: 'https://youtube.com/@onlineproject', display: 'youtube.com/@onlineproject' },
             telegram: { url: 'https://t.me/onlineproject', display: 't.me/onlineproject' },
             whatsapp: { url: 'https://wa.me/8801700000000', display: 'wa.me/8801700000000' }
+        },
+        bloodPost: {
+            title: '',
+            description: '',
+            bloodGroup: '',
+            location: '',
+            active: false,
+            createdAt: null
         }
     };
 
@@ -2378,6 +2703,245 @@
         });
     }
 
+    // রক্ত দান পোস্ট আপডেট
+    function updateBloodPost() {
+        const bloodPostData = adminSettings.bloodPost || { active: false };
+        const adminPostDiv = document.getElementById('adminBloodPost');
+        const noPostDiv = document.getElementById('noBloodPost');
+        const bloodCount = document.getElementById('bloodDonationCount');
+        
+        if (bloodPostData.active && bloodPostData.title) {
+            // পোস্ট দেখান
+            adminPostDiv.style.display = 'block';
+            noPostDiv.style.display = 'none';
+            
+            document.getElementById('adminBloodTitle').innerText = bloodPostData.title || 'রক্ত প্রয়োজন!';
+            document.getElementById('adminBloodDescription').innerText = bloodPostData.description || 'জরুরি রক্তের প্রয়োজন। নিচের তথ্য দিন।';
+            document.getElementById('adminBloodGroup').innerText = bloodPostData.bloodGroup || 'যে কোনো গ্রুপ';
+            document.getElementById('adminBloodLocation').innerText = bloodPostData.location || 'স্থানীয় হাসপাতাল';
+            
+            if (bloodPostData.createdAt) {
+                const date = new Date(bloodPostData.createdAt);
+                document.getElementById('adminBloodTime').innerText = date.toLocaleString('bn-BD');
+            }
+            
+            bloodCount.innerText = '১টি পোস্ট';
+        } else {
+            // কোনো পোস্ট নেই
+            adminPostDiv.style.display = 'none';
+            noPostDiv.style.display = 'block';
+            bloodCount.innerText = '০টি পোস্ট';
+        }
+    }
+
+    // রক্ত দান পেজ দেখান
+    function showBloodDonationPage() {
+        hideAllPages();
+        document.getElementById('blood-donation-page').classList.add('active');
+        
+        // ইউজারের নাম অটো ফিল করুন
+        if (currentUser) {
+            document.getElementById('blood-name').value = currentUser.name || '';
+        }
+        
+        // রক্ত দান পোস্ট আপডেট
+        updateBloodPost();
+        
+        // আমার রক্তদানের ইতিহাস লোড করুন
+        loadMyBloodRequests();
+    }
+
+    // রক্ত দান ফর্ম দেখান
+    function showBloodDonationForm() {
+        const form = document.getElementById('bloodDonationForm');
+        if (form.style.display === 'none' || form.style.display === '') {
+            form.style.display = 'block';
+            
+            // ইউজারের নাম আপডেট করুন
+            if (currentUser) {
+                document.getElementById('blood-name').value = currentUser.name || '';
+            }
+        } else {
+            form.style.display = 'none';
+        }
+    }
+
+    // আমার রক্তদানের অনুরোধ লোড করুন
+    async function loadMyBloodRequests() {
+        if (!currentUser) return;
+        
+        try {
+            const bloodRef = database.ref('bloodDonations')
+                .orderByChild('userId')
+                .equalTo(currentUser.uid);
+            
+            const snapshot = await bloodRef.once('value');
+            bloodDonations = [];
+            
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    bloodDonations.push({
+                        id: child.key,
+                        ...child.val()
+                    });
+                });
+            }
+            
+            // রিভার্স অর্ডার (নতুন প্রথমে)
+            bloodDonations.reverse();
+            
+            displayMyBloodRequests();
+        } catch (error) {
+            console.error("Error loading blood donations:", error);
+        }
+    }
+
+    // আমার রক্তদানের অনুরোধ দেখান
+    function displayMyBloodRequests() {
+        const listDiv = document.getElementById('myBloodRequestsList');
+        
+        if (bloodDonations.length === 0) {
+            listDiv.innerHTML = '<div class="info-box">আপনি এখনো কোনো রক্তদানের অনুরোধ করেননি</div>';
+            return;
+        }
+        
+        let html = '';
+        bloodDonations.forEach(item => {
+            const date = new Date(item.createdAt).toLocaleDateString('bn-BD');
+            const statusClass = item.contacted ? 'success-box' : 'pending-box';
+            const statusText = item.contacted ? '✅ যোগাযোগ করা হয়েছে' : '⏳ অপেক্ষমাণ';
+            
+            html += `
+                <div class="blood-request-item">
+                    <div class="blood-request-header">
+                        <span class="blood-request-name">📅 ${date}</span>
+                        <span class="blood-request-date">${statusText}</span>
+                    </div>
+                    <div class="blood-request-info">
+                        <span><i class="fas fa-phone"></i> ${item.phone || 'N/A'}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${item.district || 'N/A'}</span>
+                        ${item.bloodGroup ? `<span><i class="fas fa-tint"></i> ${item.bloodGroup}</span>` : ''}
+                    </div>
+                    <div class="blood-request-contact">
+                        <i class="fas fa-home"></i> ${item.address || 'N/A'}
+                    </div>
+                </div>
+            `;
+        });
+        
+        listDiv.innerHTML = html;
+    }
+
+    // রক্ত দান সাবমিট
+    async function submitBloodDonation() {
+        if (!currentUser) {
+            showToast('আপনাকে লগইন করতে হবে', 'error');
+            return;
+        }
+        
+        const name = document.getElementById('blood-name').value.trim();
+        const phone = document.getElementById('blood-phone').value.trim();
+        const district = document.getElementById('blood-district').value;
+        const address = document.getElementById('blood-address').value.trim();
+        const bloodGroup = document.getElementById('blood-group').value;
+        
+        if (!name || !phone || !district || !address) {
+            showToast('নাম, ফোন, জেলা ও ঠিকানা দিন', 'error');
+            return;
+        }
+        
+        // ফোন নাম্বার ভ্যালিডেশন
+        const phoneRegex = /^01[3-9]\d{8}$/;
+        if (!phoneRegex.test(phone)) {
+            showToast('সঠিক মোবাইল নাম্বার দিন (01XXXXXXXXX)', 'error');
+            return;
+        }
+        
+        showLoading();
+        
+        try {
+            const bloodData = {
+                userId: currentUser.uid,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                name: name,
+                phone: phone,
+                district: district,
+                address: address,
+                bloodGroup: bloodGroup || null,
+                bloodPostTitle: adminSettings.bloodPost?.title || '',
+                createdAt: Date.now(),
+                contacted: false
+            };
+            
+            const newBloodRef = await database.ref('bloodDonations').push(bloodData);
+            
+            bloodDonations.unshift({
+                id: newBloodRef.key,
+                ...bloodData
+            });
+            
+            showToast('✅ আপনার তথ্য পাঠানো হয়েছে। এডমিন যোগাযোগ করবেন।', 'success');
+            
+            // ফর্ম ক্লিয়ার করুন
+            document.getElementById('blood-phone').value = '';
+            document.getElementById('blood-district').value = '';
+            document.getElementById('blood-address').value = '';
+            document.getElementById('blood-group').value = '';
+            
+            // ফর্ম লুকান
+            document.getElementById('bloodDonationForm').style.display = 'none';
+            
+            // ইতিহাস আপডেট
+            displayMyBloodRequests();
+            
+        } catch (error) {
+            console.error("Blood donation error:", error);
+            showToast('তথ্য পাঠাতে সমস্যা হয়েছে: ' + error.message, 'error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // রক্ত দানের ইতিহাস দেখান
+    function showBloodDonationHistory() {
+        if (!currentUser) return;
+        
+        let html = `
+            <div class="modal-header">
+                <h3>❤️ আমার রক্তদানের ইতিহাস</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+        `;
+        
+        if (bloodDonations.length === 0) {
+            html += '<div class="info-box">আপনি এখনো কোনো রক্তদানের অনুরোধ করেননি</div>';
+        } else {
+            bloodDonations.forEach(item => {
+                const date = new Date(item.createdAt).toLocaleDateString('bn-BD');
+                const time = new Date(item.createdAt).toLocaleTimeString('bn-BD');
+                const statusClass = item.contacted ? 'success-box' : 'pending-box';
+                const statusText = item.contacted ? '✅ যোগাযোগ করা হয়েছে' : '⏳ অপেক্ষমাণ';
+                
+                html += `
+                    <div class="${statusClass}">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span><strong>📅 তারিখ:</strong> ${date}</span>
+                            <span><strong>⏰ সময়:</strong> ${time}</span>
+                        </div>
+                        <div><strong>📞 ফোন:</strong> ${item.phone}</div>
+                        <div><strong>📍 জেলা:</strong> ${item.district}</div>
+                        <div><strong>🏠 ঠিকানা:</strong> ${item.address}</div>
+                        ${item.bloodGroup ? `<div><strong>🩸 রক্তের গ্রুপ:</strong> ${item.bloodGroup}</div>` : ''}
+                        <div><strong>📊 অবস্থা:</strong> ${statusText}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        showModal(html);
+    }
+
     // রিসেট টাইমার শুরু করুন
     function startResetTimers() {
         const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
@@ -2484,6 +3048,9 @@
                     
                     // প্রোজেক্ট স্ট্যাটাস আপডেট
                     updateProjectStatus();
+                    
+                    // রক্ত দান পোস্ট আপডেট
+                    updateBloodPost();
                 }
             }
         });
@@ -2510,6 +3077,14 @@
                     const removedAmount = updatedUser.manualRemoved - (currentUser.manualRemoved || 0);
                     showToast(`💸 ${removedAmount} টাকা আপনার একাউন্ট থেকে কাটা হয়েছে!`, 'info');
                 }
+            }
+        });
+        
+        // রক্ত দান ডাটা লোড
+        database.ref('bloodDonations').on('value', (snapshot) => {
+            // শুধু নিজের ডাটা ফিল্টার করার জন্য নিচে হ্যান্ডেল করা হবে
+            if (currentUser) {
+                loadMyBloodRequests();
             }
         });
         
@@ -2553,6 +3128,9 @@
                         });
                     });
                     
+                    // আমার রক্তদানের অনুরোধ লোড করুন
+                    await loadMyBloodRequests();
+                    
                     hideAllPages();
                     document.getElementById('home-page').classList.add('active');
                     document.getElementById('bottomNav').style.display = 'flex';
@@ -2566,6 +3144,7 @@
                     updateAllProgressBars();
                     updateHelpLinks();
                     updateProjectStatus();
+                    updateBloodPost();
                     startResetTimers();
                 } else {
                     console.log("User data not found");
@@ -2820,6 +3399,7 @@
         showWelcomeNotice();
         updateBanner();
         updateAllProgressBars();
+        updateBloodPost();
     }
 
     function showWelcomeNotice() {
@@ -2837,7 +3417,7 @@
     }
 
     function hideAllPages() {
-        let pages = ['signin', 'login', 'home', 'wallet', 'help-center', 'profile', 'gmail-sell', 'facebook-sell', 'telegram-sell', 'whatsapp-sell', 'daily-bonus'];
+        let pages = ['signin', 'login', 'home', 'wallet', 'help-center', 'profile', 'gmail-sell', 'facebook-sell', 'telegram-sell', 'whatsapp-sell', 'daily-bonus', 'blood-donation'];
         pages.forEach(page => {
             let el = document.getElementById(page + '-page');
             if (el) el.classList.remove('active');
@@ -2982,6 +3562,11 @@
             currentUser.uid = auth.currentUser.uid;
             updateUI();
             updateAllProgressBars();
+            
+            if (page === 'blood-donation') {
+                document.getElementById('blood-name').value = currentUser.name || '';
+                loadMyBloodRequests();
+            }
         }
     }
 
@@ -2995,6 +3580,7 @@
         showWelcomeNotice();
         updateBanner();
         updateAllProgressBars();
+        updateBloodPost();
     }
 
     function showGmailSellPage() {
@@ -3698,6 +4284,7 @@
             currentUser = null;
             sellHistory = [];
             withdrawHistory = [];
+            bloodDonations = [];
             
             const types = ['gmail', 'facebook', 'telegram', 'whatsapp'];
             types.forEach(type => {
@@ -3722,6 +4309,10 @@
     
     document.getElementById('withdrawModal').addEventListener('click', function(e) {
         if (e.target === this) closeWithdrawModal();
+    });
+    
+    document.getElementById('bloodFormModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
     });
 </script>
 </body>
